@@ -1,0 +1,9 @@
+|!Run file for !Master
+|
+IconSprites <Obey$Dir>.!Sprites
+|
+Set Master$Dir <Obey$Dir>
+|
+WimpSlot -min 64k -max 64k
+|
+Run <Master$Dir>.!RunImage
