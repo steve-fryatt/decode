@@ -22,9 +22,9 @@
 | See the Licence for the specific language governing
 | permissions and limitations under the Licence.
 
-IconSprites <Obey$Dir>.!Sprites
-|
 Set Master$Dir <Obey$Dir>
+|
+IconSprites <Master$Dir>.!Sprites
 |
 WimpSlot -min 64k -max 64k
 |
