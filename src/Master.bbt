@@ -41,6 +41,7 @@ SYS "Wimp_CloseDown"
 END
 :
 DEF PROCpoll
+LOCAL reopen%, reason%
 SYS "Wimp_Poll",0,block% TO reason%
 CASE reason% OF
 WHEN 2 : SYS "Wimp_OpenWindow",,block%
@@ -48,11 +49,14 @@ WHEN 3 : SYS "Wimp_CloseWindow",,block%
 WHEN 6 : PROCmouse_click(block%!12,block%!16,block%!8)
 WHEN 7 : PROCplace_colour
 WHEN 9
+ SYS "Wimp_GetPointerInfo",,safeblock%
+ reopen%=(safeblock%!8 = 1)
  CASE !block% OF
   WHEN 1 : OSCLI("%Filer_Run <Master$Dir>.!Help")
   WHEN 2 : solid%=NOTsolid%:PROCset_menu_state(menu%,2,ABS(solid%),0)
   WHEN 3 : quit%=TRUE
  ENDCASE
+ IF reopen% THEN PROCdisplay_menu(menuup%, 0, 0)
 WHEN 17,18
  CASE block%!16 OF
   WHEN 0      : quit%=TRUE
