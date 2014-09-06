@@ -23,6 +23,7 @@ REM See the Licence for the specific language governing
 REM permissions and limitations under the Licence.
 :
 LIBRARY "BASIC:LegacyWimp"
+LIBRARY "BASIC:Url"
 :
 REM These values get replaced by tokenize.
 :
@@ -52,7 +53,12 @@ WHEN 9
   WHEN 2 : solid%=NOTsolid%:PROCset_menu_state(menu%,2,ABS(solid%),0)
   WHEN 3 : quit%=TRUE
  ENDCASE
-WHEN 17,18 : IF block%!16=0 THEN quit%=TRUE
+WHEN 17,18
+ CASE block%!16 OF
+  WHEN 0      : quit%=TRUE
+  WHEN &4E383 : PROCurl_bounce(b%)
+ ENDCASE
+WHEN 19 : IF block%!16 = &4AF80 THEN PROCurl_bounce(b%)
 ENDCASE
 ENDPROC
 :
@@ -72,6 +78,11 @@ CASE window% OF
           WHEN 107: PROCnew
           ENDCASE
       ENDCASE
+  WHEN info%
+    IF button% = 4 AND icon% = 8 THEN
+      PROCurl_launch("http://www.stevefryatt.org.uk/software/games/")
+      PROCdisplay_menu(-1,0,0)
+    ENDIF
   ENDCASE
 ENDPROC
 :
@@ -319,7 +330,7 @@ SYS "OS_SpriteOp",&10A,area%,f$
 =area%
 :
 DEF PROCinit
-DIM block% 255,safeblock% 255
+DIM block% 255,safeblock% 255, a% 255
 $block%="TASK"
 quit%=FALSE
 app$="Master"
