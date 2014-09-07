@@ -26,6 +26,6 @@ Set Master$Dir <Obey$Dir>
 |
 IconSprites <Master$Dir>.!Sprites
 |
-WimpSlot -min 64k -max 64k
+WimpSlot -min 128k -max 128k
 |
 Run <Master$Dir>.!RunImage

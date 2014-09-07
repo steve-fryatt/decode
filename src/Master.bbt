@@ -30,6 +30,8 @@ LIBRARY "BASIC:Resources"
 LIBRARY "BASIC:Template"
 LIBRARY "BASIC:Url"
 LIBRARY "BASIC:WimpError"
+LIBRARY "BASIC:WimpSprite"
+LIBRARY "BASIC:Window"
 
 PROCwimperror_initialise("Hangman", "!hangman")
 ON ERROR result% = FNwimperror_program : END
@@ -69,7 +71,7 @@ WHEN 9
   WHEN 2 : solid%=NOTsolid%:PROCmenu_set_state(IconbarMenu%, 2, solid%, FALSE)
   WHEN 3 : Quit%=TRUE
  ENDCASE
- IF reopen% THEN PROCdisplay_menu(FNmenu_current_handle, 0, 0)
+ IF reopen% THEN PROCmenu_create(FNmenu_current_handle, 0, 0)
 WHEN 17,18
  CASE b%!16 OF
   WHEN 0      : Quit%=TRUE
@@ -84,59 +86,98 @@ CASE window% OF
   WHEN -2
     CASE button% OF
       WHEN 2 : PROCmenu_create_iconbar(IconbarMenu%, !b%)
-      WHEN 1,4 : PROCopen_window(main%)
+      WHEN 1,4 : PROCwindow_open(MainWindow%)
       ENDCASE
-  WHEN main%
+  WHEN MainWindow%
     CASE button% OF
       WHEN 64 : PROCdrag_col(window%,icon%)
       WHEN 1,4
         CASE icon% OF
-          WHEN 58 : IF drags% THEN PROCscore_next
+          WHEN 106 : IF drags% THEN PROCscore_next
           WHEN 107: PROCnew
           ENDCASE
       ENDCASE
   WHEN InfoWindow%
     IF button% = 4 AND icon% = 8 THEN
       PROCurl_launch(FNmessage_lookup("SupportURL"))
-      PROCdisplay_menu(-1,0,0)
+      PROCmenu_create(-1,0,0)
     ENDIF
   ENDCASE
 ENDPROC
+
+
+
+DEF PROCset_guess_peg_colour(icon%, colour%)
+LOCAL sprite$
+
+IF icon% < 0 OR icon% >= 58 THEN ENDPROC
+IF colour% = -1 THEN sprite$ = "ph" ELSE sprite$ = "p" + STR$(colour%)
+PROCicon_set_indirected_text(MainWindow%, icon%, sprite$)
+PROCicon_redraw(MainWindow%, icon%)
+ENDPROC
+
+
+DEF FNget_guess_peg_colour(icon%)
+LOCAL sprite$
+
+IF icon% < 0 OR icon% >= 58 THEN =-1
+sprite$ = $FNicon_indirection(MainWindow%, icon%)
+IF LEFT$(sprite$, 1) <> "p" OR sprite$ = "ph" THEN =-1
+=VAL(MID$(sprite$, 2))
+
+DEF PROCset_score_peg_colour(icon%, colour%)
+LOCAL sprite$
+
+IF icon% < 58 OR icon% >= 105 THEN ENDPROC
+CASE colour% OF
+	WHEN 0		: sprite$ = "s1"
+	WHEN 7		: sprite$ = "s0"
+	OTHERWISE	: sprite$ = "sh"
+ENDCASE
+PROCicon_set_indirected_text(MainWindow%, icon%, sprite$)
+PROCicon_redraw(MainWindow%, icon%)
+ENDPROC
+
+
 :
 DEF PROCdrag_col(w%,i%)
-IF NOT drags% THEN ENDPROC
-IF FNicon_colour(w%,i%)=1 THEN ENDPROC
-IF i%<10 THEN
-PROCdrag(w%,i%)
-dragging%=colours%(i%)
-from%=-1
+IF (w% <> MainWindow%) OR (NOT drags%) THEN ENDPROC
+IF FNget_guess_peg_colour(i%) = -1 THEN ENDPROC
+
+IF i% < 10 THEN
+	PROCdrag(w%, i%)
+	DragColour% = colours%(i%)
+	DragFrom%=-1
 ENDIF
-IF i%>9 AND i%<58 THEN
-PROCdrag(w%,i%)
-dragging%=FNicon_colour(w%,i%)
-from%=i%
-IF from%>valid% AND solid% THEN
-PROCset_icon_colour(main%,from%,7,1)
-IF from%-valid%<5 AND from%-valid%>-1 THEN sequ%(from%-valid%-1)=-1
-ENDIF
+
+IF i% > 9 AND i% < 58 THEN
+	PROCdrag(w%, i%)
+	DragColour% = FNget_guess_peg_colour(i%)
+	DragFrom% = i%
+	IF DragFrom% > valid% AND solid% THEN
+		PROCset_guess_peg_colour(DragFrom%, -1)
+		IF DragFrom% - valid% < 5 AND DragFrom% - valid% > -1 THEN sequ%(DragFrom% - valid% - 1) = -1
+	ENDIF
 ENDIF
 ENDPROC
 :
 DEF PROCplace_colour
-icon%=FNdrag_end
-IF icon%>valid% AND icon%<58 THEN
-PROCset_icon_colour(main%,icon%,7,dragging%)
-IF icon%-valid%<5 AND icon%-valid%>-1 THEN sequ%(icon%-valid%-1)=FNcolour(dragging%)
+icon% = FNdrag_end
+
+IF icon% > valid% AND icon% < 58 THEN
+	PROCset_guess_peg_colour(icon%, DragColour%)
+	IF icon%-valid% < 5 AND icon%-valid% > -1 THEN sequ%(icon%-valid%-1) = FNcolour(DragColour%)
 ENDIF
-IF from%>valid% AND from%<>icon% AND NOTsolid% THEN
-PROCset_icon_colour(main%,from%,7,1)
-IF from%-valid%<5 AND from%-valid%>-1 THEN sequ%(from%-valid%-1)=-1
+
+IF DragFrom% > valid% AND DragFrom% <> icon% AND NOT solid% THEN
+	PROCset_guess_peg_colour(DragFrom%, -1)
+	IF DragFrom%-valid% < 5 AND DragFrom%-valid% > -1 THEN sequ%(DragFrom%-valid%-1) = -1
 ENDIF
 ENDPROC
 :
 DEF PROCdrag(whan%,icon%)
-LOCAL ox%,oy%,x1%,y1%,x2%,y2%,c%
-c%=FNicon_colour(whan%,icon%)
+LOCAL ox%,oy%,x1%,y1%,x2%,y2%,sprite$
+sprite$=$FNicon_indirection(whan%,icon%)
 !q%=whan%
 SYS "Wimp_GetWindowState",,q%
 ox%=q%!4-q%!20
@@ -157,7 +198,7 @@ q%!28=y1%
 q%!32=x2%
 q%!36=y2%
 IF drag_start%<>-1 AND solid% THEN
-SYS "DragASprite_Start",%00100101,sprites%,STR$(c%),q%+8,q%+24
+SYS "DragASprite_Start",%00100101,SpriteArea%,sprite$,q%+8,q%+24
 ELSE
 SYS "Wimp_DragBox",,q%
 ENDIF
@@ -176,20 +217,14 @@ n%+=1
 UNTIL c%=colours%(n%)
 =n%
 :
-DEF FNicon_colour(w%,i%)
-!b%=w%
-b%!4=i%
-SYS "Wimp_GetIconState",,b%
-=((b%!24 AND (15<<28))>>>28)
-:
 DEF FNnew_target
-LOCAL t%,a%,near%
+LOCAL t%,i%,near%
 valid%=9
 line%=1
 PROCtext("Guess the code")
 REPEAT
 t%=RND(9999)
-PROCscore(t%,t%,near%,a%)
+PROCscore(t%,t%,near%,i%)
 UNTIL near%=0
 =t%
 :
@@ -210,51 +245,51 @@ ENDPROC
 :
 DEF PROCline(l%)
 IF l%>1 THEN
-PROCset_icon_colour(main%,(l%-1)+108,7,1)
+PROCicon_set_colours(MainWindow%,(l%-1)+108,7,1)
 ENDIF
-PROCset_icon_colour(main%,l%+108,11,1)
+PROCicon_set_colours(MainWindow%,l%+108,11,1)
 ENDPROC
 :
 DEF FNget_guess
-LOCAL s$,a%,fail%
+LOCAL s$,i%,fail%
 fail%=FALSE
-FOR a%=0 TO 3
-IF sequ%(a%)<>-1 THEN
-s$+=STR$(sequ%(a%))
+FOR i%=0 TO 3
+IF sequ%(i%)<>-1 THEN
+s$+=STR$(sequ%(i%))
 ELSE
 fail%=TRUE
 ENDIF
-NEXT a%
+NEXT i%
 IF fail% THEN =-1
 =VAL(s$)
 :
 DEF PROCscore(n%,t%,RETURN c%,RETURN p%)
-LOCAL a%,b%
+LOCAL i%,b%
 c%=0 : p%=0
-FOR a%=1 TO 4
+FOR i%=1 TO 4
 FOR b%=1 TO 4
-IF FNin(n%,a%)=FNin(t%,b%) THEN
-IF a%=b% THEN p%+=1 ELSE c%+=1
+IF FNin(n%,i%)=FNin(t%,b%) THEN
+IF i%=b% THEN p%+=1 ELSE c%+=1
 ENDIF
 NEXT b%
-NEXT a%
+NEXT i%
 ENDPROC
 :
 DEF PROCblacks(n%,o%,l%)
 LOCAL index%,plot%
 IF n%=0 THEN ENDPROC
-index%=59+((l%-1)*4)+o%
+index%=58+((l%-1)*4)+o%
 FOR plot%=index% TO index%+n%-1
-PROCset_icon_colour(main%,plot%,7,7)
+	PROCset_score_peg_colour(plot%, 7)
 NEXT plot%
 ENDPROC
 :
 DEF PROCwhites(n%,o%,l%)
 LOCAL index%,plot%
 IF n%=0 THEN ENDPROC
-index%=59+((l%-1)*4)+o%
+index%=58+((l%-1)*4)+o%
 FOR plot%=index% TO index%+n%-1
-PROCset_icon_colour(main%,plot%,7,0)
+	PROCset_score_peg_colour(plot%, 0)
 NEXT plot%
 ENDPROC
 :
@@ -267,96 +302,86 @@ ENDWHILE
 =VAL(MID$(s$,p%,1))
 :
 DEF PROCnew
-LOCAL b%
+LOCAL peg%
 target%=FNnew_target
-FOR b%=10 TO 57
-PROCset_icon_colour(main%,b%,7,1)
-NEXT
-FOR b%=59 TO 106
-PROCset_icon_colour(main%,b%,1,1)
-NEXT
-FOR b%=0 TO 9
-PROCset_icon_colour(main%,b%,7,colours%(b%))
-NEXT
+FOR peg%=10 TO 57
+	PROCset_guess_peg_colour(peg%, -1)
+NEXT peg%
+FOR peg%=58 TO 105
+	PROCset_score_peg_colour(peg%, -1)
+NEXT peg%
+FOR peg%=0 TO 9
+	PROCset_guess_peg_colour(peg%, colours%(peg%))
+NEXT peg%
 sequ%()=-1
 drags%=TRUE
 PROCline(1)
-VDU 7
 ENDPROC
 :
 DEF PROCwin
-LOCAL a%
+LOCAL i%
 PROCtext("Correct! Well done")
 PROCshow_sequence
-FOR a%=109 TO 120
-PROCset_icon_colour(main%,a%,7,1)
-NEXT a%
+FOR i%=109 TO 120
+PROCicon_set_colours(MainWindow%,i%,7,1)
+NEXT i%
 PROCscores(line%-1)
 VDU 7
 drags%=FALSE
 ENDPROC
 :
 DEF PROCend
-LOCAL a%
+LOCAL i%
 PROCtext("Too slow! Bad luck")
 PROCshow_sequence
-FOR a%=109 TO 120
-PROCset_icon_colour(main%,a%,7,1)
-NEXT a%
+FOR i%=109 TO 120
+PROCicon_set_colours(MainWindow%,i%,7,1)
+NEXT i%
 PROCscores(line%-1)
 VDU 7
 drags%=FALSE
 ENDPROC
 :
 DEF PROCshow_sequence
-LOCAL a%
-FOR a%=0 TO 2
-PROCset_icon_colour(main%,a%,7,1)
-NEXT
-FOR a%=3 TO 6
-PROCset_icon_colour(main%,a%,7,colours%(FNin(target%,a%-2)))
-NEXT
-FOR a%=7 TO 9
-PROCset_icon_colour(main%,a%,7,1)
-NEXT
+LOCAL peg%
+FOR peg%=0 TO 2
+	PROCset_guess_peg_colour(peg%, -1)
+NEXT peg%
+FOR peg%=3 TO 6
+	PROCset_guess_peg_colour(peg%, colours%(FNin(target%,peg%-2)))
+NEXT peg%
+FOR peg%=7 TO 9
+	PROCset_guess_peg_colour(peg%, -1)
+NEXT peg%
 ENDPROC
 :
 DEF PROCtext(t$)
-$text%=LEFT$(t$,18)
-PROCredraw_part(main%,108,-104,308,48)
+PROCicon_set_indirected_text(MainWindow%, 107, t$)
+PROCredraw_part(MainWindow%,108,-104,308,48)
 ENDPROC
 :
 DEF PROCscores(n%)
 score%=n%
 IF score%<hi_score% THEN hi_score%=score%
-$score_box%=STR$(score%)
-$hscore_box%=STR$(hi_score%)
-PROCredraw_part(main%,160,-780,100,48)
-PROCredraw_part(main%,420,-780,100,48)
+PROCicon_set_indirected_text(MainWindow%, 121, STR$(score%))
+PROCicon_set_indirected_text(MainWindow%, 123, STR$(hi_score%))
+PROCredraw_part(MainWindow%,160,-780,100,48)
+PROCredraw_part(MainWindow%,420,-780,100,48)
 ENDPROC
-:
-DEF FNload_sprites(f$)
-LOCAL size%,area%
-in%=OPENIN(f$)
-size%=EXT#in%
-CLOSE#in%
-size%+=4
-DIM area% size%
-!area%=size% : area%!8=16
-SYS "OS_SpriteOp",&10A,area%,f$
-=area%
-:
+
+
+
 
 REM Initialise ourselves, internally and with the Wimp.
 :
 DEF PROCinitialise
-LOCAL resources$, task_name$, task_sprite$, indirected_data%, indirected_size%
+LOCAL resources$, task_name$, task_sprite$, indirected_data%, indirected_size%, ibar_icon%
 
 REM Set up the quit flag and global data blocks.
 
 Quit% = FALSE
 
-DIM b% 4000, q% 255, a% 255
+DIM b% 5000, q% 255, a% 255
 
 REM Keep the LegacyWimp libraries happy.
 
@@ -382,12 +407,22 @@ q%!8 = 0
 
 SYS "Wimp_Initialise", 310, &4B534154, task_name$, q%
 
-REM Load the window tamplates
+REM Load the application sprites.
+
+SpriteArea% = FNwimpsprite_load_user_sprites("<Master$Dir>.SpriteFile")
+
+REM Load the window templates.
 
 indirected_size% = 2048
 DIM indirected_data% indirected_size%
 
 PROCtemplate_open(resources$ + "Templates")
+PROCtemplate_load("Board", b%, indirected_data%, indirected_size%, -1)
+b%!64 = SpriteArea%
+FOR i% = 0 TO 105
+	b%!(88 + 32*i% + 24) = SpriteArea%
+NEXT i%
+SYS "Wimp_CreateWindow",,b% TO MainWindow%
 PROCtemplate_load("ProgInfo", b%, indirected_data%, indirected_size%, -1)
 SYS "Wimp_CreateWindow",,b% TO InfoWindow%
 PROCtemplate_close
@@ -395,7 +430,7 @@ PROCtemplate_close
 $FNicon_indirection(InfoWindow%, 4) = CHR$(169) + " Stephen Fryatt, 1993-" + MID$(build_date$, 8)
 $FNicon_indirection(InfoWindow%, 6) = build_version$ + " (" + build_date$ + ")"
 
-REM Initialise and load the menu templates
+REM Initialise and load the menu templates.
 
 PROCmenu_initialise
 
@@ -413,7 +448,7 @@ IconbarMenu% = b%!0
 PROCdrag_init
 :
 DIM colours%(9)
-colours%()=7,4,8,9,10,11,12,13,14,15
+colours%()=0,1,2,3,4,5,6,7,8,9
 DIM sequ%(3)
 sequ%()=-1
 hits%=0
@@ -426,8 +461,6 @@ hi_score%=12
 drags%=TRUE
 solid%=FALSE
 :
-PROCwindows
-PROCicons
 IF drag_start%=-1 THEN
 PROCmenu_set_state(IconbarMenu%, 2, FALSE, TRUE)
 ELSE
@@ -439,9 +472,9 @@ PROCline(1)
 target%=FNnew_target
 PROCscores(12)
 :
-sprites%=FNload_sprites("<Master$Dir>.SpriteFile")
+
 :
-icon%=FNicon_bar(task_sprite$)
+ibar_icon% = FNicon_create_standard_bar(-1, task_sprite$)
 ENDPROC
 :
 DEF PROCdrag_init
@@ -457,41 +490,41 @@ IF (flag AND 1) swi=-1
 =swi
 :
 DEF PROCwindows
-main%=FNcreate_window(356,190,524,784,0,0,"Master Mind",1,1,1,1,1,1,1,1,0,0,0,0,1,1)
+MainWindow%=FNcreate_window(356,190,524,784,0,0,"Master Mind",1,1,1,1,1,1,1,1,0,0,0,0,1,1)
 ENDPROC
 :
 DEF PROCicons
-icon%=FNcreate_icon(main%,4,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,7)
-icon%=FNcreate_icon(main%,56,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,4)
-icon%=FNcreate_icon(main%,108,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,8)
-icon%=FNcreate_icon(main%,160,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,9)
-icon%=FNcreate_icon(main%,212,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,10)
-icon%=FNcreate_icon(main%,264,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,11)
-icon%=FNcreate_icon(main%,316,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,12)
-icon%=FNcreate_icon(main%,368,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,13)
-icon%=FNcreate_icon(main%,420,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,14)
-icon%=FNcreate_icon(main%,472,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,15)
+icon%=FNcreate_icon(MainWindow%,4,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,7)
+icon%=FNcreate_icon(MainWindow%,56,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,4)
+icon%=FNcreate_icon(MainWindow%,108,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,8)
+icon%=FNcreate_icon(MainWindow%,160,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,9)
+icon%=FNcreate_icon(MainWindow%,212,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,10)
+icon%=FNcreate_icon(MainWindow%,264,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,11)
+icon%=FNcreate_icon(MainWindow%,316,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,12)
+icon%=FNcreate_icon(MainWindow%,368,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,13)
+icon%=FNcreate_icon(MainWindow%,420,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,14)
+icon%=FNcreate_icon(MainWindow%,472,-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,15)
 FOR y%=3 TO 14
 FOR x%=1 TO 4
-icon%=FNcreate_icon(main%,x%*52+56,y%*-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,1)
+icon%=FNcreate_icon(MainWindow%,x%*52+56,y%*-52,48,48,"",0,0,0,1,0,1,1,1,1,0,0,6,0,0,0,0,7,1)
 NEXT
 NEXT
-icon%=FNcreate_icon(main%,4,-104,100,48,"Score",0,0,0,1,0,1,1,1,1,0,0,9,1,0,0,0,7,12)
+icon%=FNcreate_icon(MainWindow%,4,-104,100,48,"Score",0,0,0,1,0,1,1,1,1,0,0,9,1,0,0,0,7,12)
 FOR y%=3 TO 14
 FOR x%=12 TO 15
-icon%=FNcreate_icon(main%,x%*28,(y%*-52)+12,24,24,"",0,0,0,1,0,1,1,1,1,0,0,0,0,0,0,0,1,1)
+icon%=FNcreate_icon(MainWindow%,x%*28,(y%*-52)+12,24,24,"",0,0,0,1,0,1,1,1,1,0,0,0,0,0,0,0,1,1)
 NEXT
 NEXT
-icon%=FNcreate_icon(main%,420,-104,100,48,"New",0,0,0,1,0,1,1,1,1,0,0,9,1,0,0,0,7,12)
+icon%=FNcreate_icon(MainWindow%,420,-104,100,48,"New",0,0,0,1,0,1,1,1,1,0,0,9,1,0,0,0,7,12)
 DIM text% 20
-icon%=FNcreate_icon(main%,108,-104,308,48,"",text%,-1,21,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
+icon%=FNcreate_icon(MainWindow%,108,-104,308,48,"",text%,-1,21,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
 FOR y%=3 TO 14
-icon%=FNcreate_icon(main%,64,(y%*-52),36,44,STR$(y%-2),0,0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,7,1)
+icon%=FNcreate_icon(MainWindow%,64,(y%*-52),36,44,STR$(y%-2),0,0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,7,1)
 NEXT
-icon%=FNcreate_icon(main%,4,-780,152,48,"Score:",0,0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,7,1)
-icon%=FNcreate_icon(main%,264,-780,152,48,"Hi-Score:",0,0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,7,1)
+icon%=FNcreate_icon(MainWindow%,4,-780,152,48,"Score:",0,0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,7,1)
+icon%=FNcreate_icon(MainWindow%,264,-780,152,48,"Hi-Score:",0,0,0,1,0,0,0,1,1,0,1,0,0,0,0,0,7,1)
 DIM score_box% 2,hscore_box% 2
-icon%=FNcreate_icon(main%,160,-780,100,48,"",score_box%,-1,3,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
-icon%=FNcreate_icon(main%,420,-780,100,48,"",hscore_box%,-1,3,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
+icon%=FNcreate_icon(MainWindow%,160,-780,100,48,"",score_box%,-1,3,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
+icon%=FNcreate_icon(MainWindow%,420,-780,100,48,"",hscore_box%,-1,3,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
 ENDPROC
 
