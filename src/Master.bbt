@@ -24,6 +24,7 @@ REM permissions and limitations under the Licence.
 
 LIBRARY "BASIC:Icon"
 LIBRARY "BASIC:LegacyWimp"
+LIBRARY "BASIC:Menu"
 LIBRARY "BASIC:Message"
 LIBRARY "BASIC:Resources"
 LIBRARY "BASIC:Template"
@@ -65,10 +66,10 @@ WHEN 9
  reopen%=(q%!8 = 1)
  CASE !b% OF
   WHEN 1 : OSCLI("%Filer_Run <Master$Dir>.!Help")
-  WHEN 2 : solid%=NOTsolid%:PROCset_menu_state(menu%,2,ABS(solid%),0)
+  WHEN 2 : solid%=NOTsolid%:PROCmenu_set_state(IconbarMenu%, 2, solid%, FALSE)
   WHEN 3 : Quit%=TRUE
  ENDCASE
- IF reopen% THEN PROCdisplay_menu(menuup%, 0, 0)
+ IF reopen% THEN PROCdisplay_menu(FNmenu_current_handle, 0, 0)
 WHEN 17,18
  CASE b%!16 OF
   WHEN 0      : Quit%=TRUE
@@ -82,7 +83,7 @@ DEF PROCmouse_click(window%,icon%,button%)
 CASE window% OF
   WHEN -2
     CASE button% OF
-      WHEN 2 : PROCdisplay_bar_menu(menu%,4,0,!b%)
+      WHEN 2 : PROCmenu_create_iconbar(IconbarMenu%, !b%)
       WHEN 1,4 : PROCopen_window(main%)
       ENDCASE
   WHEN main%
@@ -394,6 +395,14 @@ PROCtemplate_close
 $FNicon_indirection(InfoWindow%, 4) = CHR$(169) + " Stephen Fryatt, 1993-" + MID$(build_date$, 8)
 $FNicon_indirection(InfoWindow%, 6) = build_version$ + " (" + build_date$ + ")"
 
+REM Initialise and load the menu templates
+
+PROCmenu_initialise
+
+b%!0 = InfoWindow%
+PROCmenu_load_templates(resources$ + "Menus", b%)
+IconbarMenu% = b%!0
+
 
 
 
@@ -419,11 +428,10 @@ solid%=FALSE
 :
 PROCwindows
 PROCicons
-PROCmenus
 IF drag_start%=-1 THEN
-PROCset_menu_state(menu%,2,0,1)
+PROCmenu_set_state(IconbarMenu%, 2, FALSE, TRUE)
 ELSE
-PROCset_menu_state(menu%,2,1,0)
+PROCmenu_set_state(IconbarMenu%, 2, TRUE, FALSE)
 solid%=TRUE
 ENDIF
 PROCline(1)
@@ -485,15 +493,5 @@ icon%=FNcreate_icon(main%,264,-780,152,48,"Hi-Score:",0,0,0,1,0,0,0,1,1,0,1,0,0,
 DIM score_box% 2,hscore_box% 2
 icon%=FNcreate_icon(main%,160,-780,100,48,"",score_box%,-1,3,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
 icon%=FNcreate_icon(main%,420,-780,100,48,"",hscore_box%,-1,3,1,0,1,1,1,1,1,0,0,1,0,0,0,7,0)
-ENDPROC
-:
-DEF PROCmenus
-DIM menu% 124
-mw%=0 : me%=0
-PROCinit_menu(menu%,mw%,me%,"Master Mind")
-PROCst_menu_item(menu%,mw%,me%,"Info",0,0,0,0,InfoWindow%)
-PROCst_menu_item(menu%,mw%,me%,"Help",0,0,0,0,-1)
-PROCst_menu_item(menu%,mw%,me%,"Solid drags",0,0,0,0,-1)
-PROCst_menu_item(menu%,mw%,me%,"Quit",0,0,0,1,-1)
 ENDPROC
 

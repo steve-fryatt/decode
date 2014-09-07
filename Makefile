@@ -93,6 +93,7 @@ OUTDIR := build
 APP := !Master
 UKRES := Resources/UK
 RUNIMAGE := !RunImage,ffb
+MENUS := Menus,ffd
 README := ReadMe,fff
 FINDHELP := !Help,ffb
 TEXTHELP := HelpText,fff
@@ -103,6 +104,7 @@ LICENSE := Licence,fff
 
 MANSRC := Source
 READMEHDR := Header
+MENUSRC := menudef
 FINDHELPSRC := Help.bbt
 
 SRCS := Master.bbt
@@ -114,7 +116,7 @@ all: application documentation
 
 # Build the application and its supporting binary files.
 
-application: $(OUTDIR)/$(APP)/$(RUNIMAGE)
+application: $(OUTDIR)/$(APP)/$(RUNIMAGE) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 
 
 # Build the complete !RunImage from the object files.
@@ -123,6 +125,11 @@ SRCS := $(addprefix $(SRCDIR)/, $(SRCS))
 
 $(OUTDIR)/$(APP)/$(RUNIMAGE): $(SRCS)
 	$(TOKENIZE) $(TOKFLAGS) $(firstword $(SRCS)) -link -out $(OUTDIR)/$(APP)/$(RUNIMAGE) -path $(LIBPATHS) -define 'build_date$$=$(BUILD_DATE)' -define 'build_version$$=$(VERSION)'
+
+# Build the menus file.
+
+$(OUTDIR)/$(APP)/$(UKRES)/$(MENUS): $(MENUDIR)/$(MENUSRC)
+	$(MENUGEN) $(MENUDIR)/$(MENUSRC) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS) $(MENUGENFLAGS)
 
 # Build the documentation
 
@@ -159,5 +166,6 @@ clean:
 	$(RM) $(OUTDIR)/$(APP)/$(RUNIMAGE)
 	$(RM) $(OUTDIR)/$(APP)/$(FINDHELP)
 	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
+	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(MENUS)
 	$(RM) $(OUTDIR)/$(README)
 
