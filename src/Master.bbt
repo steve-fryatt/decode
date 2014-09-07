@@ -353,9 +353,9 @@ LOCAL resources$, task_name$, task_sprite$, indirected_data%, indirected_size%
 
 REM Set up the quit flag and global data blocks.
 
-Quit%=FALSE
+Quit% = FALSE
 
-DIM b% 255, q% 255, a% 255
+DIM b% 4000, q% 255, a% 255
 
 REM Keep the LegacyWimp libraries happy.
 
@@ -383,7 +383,7 @@ SYS "Wimp_Initialise", 310, &4B534154, task_name$, q%
 
 REM Load the window tamplates
 
-indirected_size%=2048
+indirected_size% = 2048
 DIM indirected_data% indirected_size%
 
 PROCtemplate_open(resources$ + "Templates")
