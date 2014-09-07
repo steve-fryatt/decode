@@ -91,9 +91,11 @@ OUTDIR := build
 # Set up the named target files.
 
 APP := !Master
+UKRES := Resources/UK
 RUNIMAGE := !RunImage,ffb
 README := ReadMe,fff
-TEXTHELP := !Help,fff
+FINDHELP := !Help,ffb
+TEXTHELP := HelpText,fff
 LICENSE := Licence,fff
 
 
@@ -101,6 +103,7 @@ LICENSE := Licence,fff
 
 MANSRC := Source
 READMEHDR := Header
+FINDHELPSRC := Help.bbt
 
 SRCS := Master.bbt
 
@@ -123,12 +126,15 @@ $(OUTDIR)/$(APP)/$(RUNIMAGE): $(SRCS)
 
 # Build the documentation
 
-documentation: $(OUTDIR)/$(APP)/$(TEXTHELP) $(OUTDIR)/$(README)
+documentation: $(OUTDIR)/$(APP)/$(FINDHELP) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(OUTDIR)/$(README)
 
-$(OUTDIR)/$(APP)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
-	$(MANTOOLS) -MTEXT -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+$(OUTDIR)/$(APP)/$(FINDHELP): $(MANUAL)/$(FINDHELPSRC)
+	$(TOKENIZE) $(TOKFLAGS) $(MANUAL)/$(FINDHELPSRC) -out $(OUTDIR)/$(APP)/$(FINDHELP)
 
-$(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
+$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP): $(MANUAL)/$(MANSRC)
+	$(MANTOOLS) -MTEXT -I$(MANUAL)/$(MANSRC) -O$(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) -D'version=$(HELP_VERSION)' -D'date=$(HELP_DATE)'
+
+$(OUTDIR)/$(README): $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR)
 	$(TEXTMERGE) $(OUTDIR)/$(README) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP) $(MANUAL)/$(READMEHDR) 5
 
 # Build the release Zip file.
@@ -151,6 +157,7 @@ backup:
 
 clean:
 	$(RM) $(OUTDIR)/$(APP)/$(RUNIMAGE)
-	$(RM) $(OUTDIR)/$(APP)/$(TEXTHELP)
+	$(RM) $(OUTDIR)/$(APP)/$(FINDHELP)
+	$(RM) $(OUTDIR)/$(APP)/$(UKRES)/$(TEXTHELP)
 	$(RM) $(OUTDIR)/$(README)
 
