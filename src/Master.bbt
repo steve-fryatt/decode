@@ -22,9 +22,11 @@ REM
 REM See the Licence for the specific language governing
 REM permissions and limitations under the Licence.
 
+LIBRARY "BASIC:Icon"
 LIBRARY "BASIC:LegacyWimp"
 LIBRARY "BASIC:Message"
 LIBRARY "BASIC:Resources"
+LIBRARY "BASIC:Template"
 LIBRARY "BASIC:Url"
 LIBRARY "BASIC:WimpError"
 
@@ -92,7 +94,7 @@ CASE window% OF
           WHEN 107: PROCnew
           ENDCASE
       ENDCASE
-  WHEN info%
+  WHEN InfoWindow%
     IF button% = 4 AND icon% = 8 THEN
       PROCurl_launch(FNmessage_lookup("SupportURL"))
       PROCdisplay_menu(-1,0,0)
@@ -347,7 +349,7 @@ SYS "OS_SpriteOp",&10A,area%,f$
 REM Initialise ourselves, internally and with the Wimp.
 :
 DEF PROCinitialise
-LOCAL resources$, task_name$, task_sprite$
+LOCAL resources$, task_name$, task_sprite$, indirected_data%, indirected_size%
 
 REM Set up the quit flag and global data blocks.
 
@@ -378,6 +380,19 @@ q%!4 = &4AF80
 q%!8 = 0
 
 SYS "Wimp_Initialise", 310, &4B534154, task_name$, q%
+
+REM Load the window tamplates
+
+indirected_size%=2048
+DIM indirected_data% indirected_size%
+
+PROCtemplate_open(resources$ + "Templates")
+PROCtemplate_load("ProgInfo", b%, indirected_data%, indirected_size%, -1)
+SYS "Wimp_CreateWindow",,b% TO InfoWindow%
+PROCtemplate_close
+
+$FNicon_indirection(InfoWindow%, 4) = CHR$(169) + " Stephen Fryatt, 1993-" + MID$(build_date$, 8)
+$FNicon_indirection(InfoWindow%, 6) = build_version$ + " (" + build_date$ + ")"
 
 
 
@@ -435,12 +450,6 @@ IF (flag AND 1) swi=-1
 :
 DEF PROCwindows
 main%=FNcreate_window(356,190,524,784,0,0,"Master Mind",1,1,1,1,1,1,1,1,0,0,0,0,1,1)
-:
-DIM name% 40 : $name%="Master Mind"
-DIM use%  40 : $use% ="Desktop logic & deduction game"
-DIM auth% 40 : $auth%=CHR$(169) + " Stephen Fryatt, 1993-" + MID$(build_date$, 8)
-DIM vers% 40 : $vers%=build_version$+" ("+build_date$+")"
-info%=FNinfo_window(name%,use%,auth%,vers%,40)
 ENDPROC
 :
 DEF PROCicons
@@ -482,7 +491,7 @@ DEF PROCmenus
 DIM menu% 124
 mw%=0 : me%=0
 PROCinit_menu(menu%,mw%,me%,"Master Mind")
-PROCst_menu_item(menu%,mw%,me%,"Info",0,0,0,0,info%)
+PROCst_menu_item(menu%,mw%,me%,"Info",0,0,0,0,InfoWindow%)
 PROCst_menu_item(menu%,mw%,me%,"Help",0,0,0,0,-1)
 PROCst_menu_item(menu%,mw%,me%,"Solid drags",0,0,0,0,-1)
 PROCst_menu_item(menu%,mw%,me%,"Quit",0,0,0,1,-1)
