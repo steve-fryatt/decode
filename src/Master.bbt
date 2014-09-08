@@ -69,7 +69,7 @@ CASE reason% OF
  reopen%=(q%!8 = 1)
  CASE !b% OF
   WHEN 1 : OSCLI("%Filer_Run <Master$Dir>.!Help")
-  WHEN 2 : solid%=NOTsolid%:PROCmenu_set_state(IconbarMenu%, 2, solid%, FALSE)
+  WHEN 2 : SolidDrags%=NOTSolidDrags%:PROCmenu_set_state(IconbarMenu%, 2, SolidDrags%, FALSE)
   WHEN 3 : Quit%=TRUE
  ENDCASE
  IF reopen% THEN PROCmenu_create(FNmenu_current_handle, 0, 0)
@@ -94,7 +94,7 @@ CASE window% OF
       WHEN 64 : PROCdrag_col(window%,icon%)
       WHEN 1,4
         CASE icon% OF
-          WHEN 106 : IF drags% THEN PROCscore_next
+          WHEN 106 : IF DragsEnabled% THEN PROCscore_next
           WHEN 108 : PROCnew
           ENDCASE
       ENDCASE
@@ -112,7 +112,7 @@ ENDPROC
 
 :
 DEF PROCdrag_col(w%,i%)
-IF (w% <> MainWindow%) OR (NOT drags%) THEN ENDPROC
+IF (w% <> MainWindow%) OR (NOT DragsEnabled%) THEN ENDPROC
 IF FNget_guess_peg_colour(i%) = -1 THEN ENDPROC
 
 IF i% < 10 THEN
@@ -125,7 +125,7 @@ IF i% > 9 AND i% < 58 THEN
 	PROCdrag(w%, i%)
 	DragColour% = FNget_guess_peg_colour(i%)
 	DragFrom% = i%
-	IF DragFrom% > valid% AND solid% THEN
+	IF DragFrom% > valid% AND SolidDrags% THEN
 		PROCset_guess_peg_colour(DragFrom%, -1)
 		IF DragFrom% - valid% < 5 AND DragFrom% - valid% > -1 THEN sequ%(DragFrom% - valid% - 1) = -1
 	ENDIF
@@ -140,7 +140,7 @@ IF icon% > valid% AND icon% < 58 THEN
 	IF icon%-valid% < 5 AND icon%-valid% > -1 THEN sequ%(icon%-valid%-1) = DragColour%
 ENDIF
 
-IF DragFrom% > valid% AND DragFrom% <> icon% AND NOT solid% THEN
+IF DragFrom% > valid% AND DragFrom% <> icon% AND NOT SolidDrags% THEN
 	PROCset_guess_peg_colour(DragFrom%, -1)
 	IF DragFrom%-valid% < 5 AND DragFrom%-valid% > -1 THEN sequ%(DragFrom%-valid%-1) = -1
 ENDIF
@@ -168,7 +168,7 @@ q%!24=x1%
 q%!28=y1%
 q%!32=x2%
 q%!36=y2%
-IF drag_start%<>-1 AND solid% THEN
+IF DragASpriteStart%<>-1 AND SolidDrags% THEN
 SYS "DragASprite_Start",%00100101,SpriteArea%,sprite$,q%+8,q%+24
 ELSE
 SYS "Wimp_DragBox",,q%
@@ -176,14 +176,14 @@ ENDIF
 ENDPROC
 :
 DEF FNdrag_end
-IF drag_stop%<>-1 AND solid% THEN SYS "DragASprite_Stop"
+IF DragASpriteStop%<>-1 AND SolidDrags% THEN SYS "DragASprite_Stop"
 SYS "Wimp_GetPointerInfo",,q%
 =q%!16
 :
 DEF FNnew_target
 LOCAL t%,i%,near%
 valid%=9
-line%=1
+CurrentLine%=1
 PROCdisplay_message("Guess")
 REPEAT
 t%=RND(9999)
@@ -196,14 +196,14 @@ guess%=FNget_guess
 IF guess%=-1 THEN PROCwimperror_report(FNmessage_lookup("NotComplete"), 1, %01, "") : ENDPROC
 hits%=0 : near%=0
 PROCscore(guess%,target%,near%,hits%)
-PROCblacks(hits%,0,line%)
-PROCwhites(near%,hits%,line%)
+PROCblacks(hits%,0,CurrentLine%)
+PROCwhites(near%,hits%,CurrentLine%)
 sequ%()=-1
 valid%+=4
-line%+=1
-IF line%<=12 THEN PROCline(line%)
+CurrentLine%+=1
+IF CurrentLine%<=12 THEN PROCline(CurrentLine%)
 IF hits%=4 THEN PROCwin
-IF line%=13 AND hits%<>4 THEN PROCend
+IF CurrentLine%=13 AND hits%<>4 THEN PROCend
 ENDPROC
 :
 DEF PROCline(l%)
@@ -277,7 +277,7 @@ FOR peg%=0 TO 9
 	PROCset_guess_peg_colour(peg%, peg%)
 NEXT peg%
 sequ%()=-1
-drags%=TRUE
+DragsEnabled%=TRUE
 PROCline(1)
 ENDPROC
 :
@@ -288,9 +288,9 @@ PROCshow_sequence
 FOR i%=109 TO 120
 PROCicon_set_colours(MainWindow%,i%,7,1)
 NEXT i%
-PROCset_new_score(line%-1)
+PROCset_new_score(CurrentLine%-1)
 VDU 7
-drags%=FALSE
+DragsEnabled%=FALSE
 ENDPROC
 :
 DEF PROCend
@@ -300,9 +300,9 @@ PROCshow_sequence
 FOR i%=109 TO 120
 PROCicon_set_colours(MainWindow%,i%,7,1)
 NEXT i%
-PROCset_new_score(line%-1)
+PROCset_new_score(CurrentLine%-1)
 VDU 7
-drags%=FALSE
+DragsEnabled%=FALSE
 ENDPROC
 :
 DEF PROCshow_sequence
@@ -458,50 +458,62 @@ IconbarMenu% = b%!0
 
 
 
-
-
-
-
-:
-PROCdrag_init
-:
 DIM sequ%(3)
 sequ%()=-1
 hits%=0
 near%=0
 target%=0
 guess%=0
-line%=0
+CurrentLine%=0
 LastScore%=12
 HighScore%=12
-drags%=TRUE
-solid%=FALSE
-:
-IF drag_start%=-1 THEN
-PROCmenu_set_state(IconbarMenu%, 2, FALSE, TRUE)
+DragsEnabled%=TRUE
+SolidDrags%=FALSE
+
+REM Initialise the dragging system.
+
+PROCdrag_init
+
+IF DragASpriteStart% = -1 THEN
+	PROCmenu_set_state(IconbarMenu%, 2, FALSE, TRUE)
 ELSE
-PROCmenu_set_state(IconbarMenu%, 2, TRUE, FALSE)
-solid%=TRUE
+	PROCmenu_set_state(IconbarMenu%, 2, TRUE, FALSE)
+	SolidDrags% = TRUE
 ENDIF
+
 PROCline(1)
-:
 target%=FNnew_target
 PROCset_new_score(12)
-:
 
-:
 ibar_icon% = FNicon_create_standard_bar(-1, task_sprite$)
 ENDPROC
+
+
+REM Initialise the solid dragging.
 :
 DEF PROCdrag_init
-drag_start%=FNswi("DragASprite_Start")
-drag_stop%=FNswi("DragASprite_Stop")
-SYS "OS_Byte",161,28 TO ,,cmos
-IF (cmos AND 2)=0 drag_start%=-1:drag_stop%=-1
+LOCAL cmos%
+
+DragASpriteStart% = FNlookup_swi_number("DragASprite_Start")
+DragASpriteStop% = FNlookup_swi_number("DragASprite_Stop")
+
+SYS "OS_Byte", 161, 28 TO ,,cmos%
+IF (cmos% AND 2) = 0 THEN
+	DragASpriteStart% = -1
+	DragASpriteStop% = -1
+ENDIF
 ENDPROC
+
+
+REM Given a SWI name, look up its number.
+REM
+REM \param swi$			The name of the SWI to look up.
+REM \return			The corresponding number, or -1 if not found.
 :
-DEF FNswi(swi$)
-SYS "XOS_SWINumberFromString",,swi$ TO swi;flag
-IF (flag AND 1) swi=-1
-=swi
+DEF FNlookup_swi_number(swi$)
+LOCAL swi%
+
+SYS "XOS_SWINumberFromString",,swi$ TO swi% ;flag%
+IF (flag% AND 1) = 1 THEN =-1
+=swi%
 
