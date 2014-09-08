@@ -57,7 +57,7 @@ REM Handle calls to Wimp_Poll and process the responses.
 DEF PROCpoll
 LOCAL reopen%, reason%
 
-SYS "Wimp_Poll", 0, b% TO reason%
+SYS "Wimp_Poll", &3C01, b% TO reason%
 
 CASE reason% OF
 	WHEN 2	: SYS "Wimp_OpenWindow",,b%
