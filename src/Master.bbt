@@ -32,7 +32,7 @@ LIBRARY "BASIC:WimpError"
 LIBRARY "BASIC:WimpSprite"
 LIBRARY "BASIC:Window"
 
-PROCwimperror_initialise("Hangman", "!hangman")
+PROCwimperror_initialise("Master", "!master")
 ON ERROR result% = FNwimperror_program : END
 
 REM These values get replaced by tokenize.
@@ -52,17 +52,19 @@ SYS "Wimp_CloseDown"
 END
 
 
-
-
+REM Handle calls to Wimp_Poll and process the responses.
+:
 DEF PROCpoll
 LOCAL reopen%, reason%
-SYS "Wimp_Poll",0,b% TO reason%
+
+SYS "Wimp_Poll", 0, b% TO reason%
+
 CASE reason% OF
-WHEN 2 : SYS "Wimp_OpenWindow",,b%
-WHEN 3 : SYS "Wimp_CloseWindow",,b%
-WHEN 6 : PROCmouse_click(b%!12,b%!16,b%!8)
-WHEN 7 : PROCplace_colour
-WHEN 9
+	WHEN 2	: SYS "Wimp_OpenWindow",,b%
+	WHEN 3	: SYS "Wimp_CloseWindow",,b%
+	WHEN 6	: PROCmouse_click(b%!12, b%!16, b%!8)
+	WHEN 7	: PROCplace_colour
+	WHEN 9
  SYS "Wimp_GetPointerInfo",,q%
  reopen%=(q%!8 = 1)
  CASE !b% OF
@@ -106,36 +108,6 @@ ENDPROC
 
 
 
-DEF PROCset_guess_peg_colour(icon%, colour%)
-LOCAL sprite$
-
-IF icon% < 0 OR icon% >= 58 THEN ENDPROC
-IF colour% = -1 THEN sprite$ = "ph" ELSE sprite$ = "p" + STR$(colour%)
-PROCicon_set_indirected_text(MainWindow%, icon%, sprite$)
-PROCicon_redraw(MainWindow%, icon%)
-ENDPROC
-
-
-DEF FNget_guess_peg_colour(icon%)
-LOCAL sprite$
-
-IF icon% < 0 OR icon% >= 58 THEN =-1
-sprite$ = $FNicon_indirection(MainWindow%, icon%)
-IF LEFT$(sprite$, 1) <> "p" OR sprite$ = "ph" THEN =-1
-=VAL(MID$(sprite$, 2))
-
-DEF PROCset_score_peg_colour(icon%, colour%)
-LOCAL sprite$
-
-IF icon% < 58 OR icon% > 105 THEN ENDPROC
-CASE colour% OF
-	WHEN 0		: sprite$ = "s0"
-	WHEN 1		: sprite$ = "s1"
-	OTHERWISE	: sprite$ = "sh"
-ENDCASE
-PROCicon_set_indirected_text(MainWindow%, icon%, sprite$)
-PROCicon_redraw(MainWindow%, icon%)
-ENDPROC
 
 
 :
@@ -145,7 +117,7 @@ IF FNget_guess_peg_colour(i%) = -1 THEN ENDPROC
 
 IF i% < 10 THEN
 	PROCdrag(w%, i%)
-	DragColour% = colours%(i%)
+	DragColour% = i%
 	DragFrom%=-1
 ENDIF
 
@@ -165,7 +137,7 @@ icon% = FNdrag_end
 
 IF icon% > valid% AND icon% < 58 THEN
 	PROCset_guess_peg_colour(icon%, DragColour%)
-	IF icon%-valid% < 5 AND icon%-valid% > -1 THEN sequ%(icon%-valid%-1) = FNcolour(DragColour%)
+	IF icon%-valid% < 5 AND icon%-valid% > -1 THEN sequ%(icon%-valid%-1) = DragColour%
 ENDIF
 
 IF DragFrom% > valid% AND DragFrom% <> icon% AND NOT solid% THEN
@@ -208,19 +180,11 @@ IF drag_stop%<>-1 AND solid% THEN SYS "DragASprite_Stop"
 SYS "Wimp_GetPointerInfo",,q%
 =q%!16
 :
-DEF FNcolour(c%)
-LOCAL n%
-n%=-1
-REPEAT
-n%+=1
-UNTIL c%=colours%(n%)
-=n%
-:
 DEF FNnew_target
 LOCAL t%,i%,near%
 valid%=9
 line%=1
-PROCtext("Guess the code")
+PROCdisplay_message("Guess")
 REPEAT
 t%=RND(9999)
 PROCscore(t%,t%,near%,i%)
@@ -310,7 +274,7 @@ FOR peg%=58 TO 105
 	PROCset_score_peg_colour(peg%, -1)
 NEXT peg%
 FOR peg%=0 TO 9
-	PROCset_guess_peg_colour(peg%, colours%(peg%))
+	PROCset_guess_peg_colour(peg%, peg%)
 NEXT peg%
 sequ%()=-1
 drags%=TRUE
@@ -319,24 +283,24 @@ ENDPROC
 :
 DEF PROCwin
 LOCAL i%
-PROCtext("Correct! Well done")
+PROCdisplay_message("Correct")
 PROCshow_sequence
 FOR i%=109 TO 120
 PROCicon_set_colours(MainWindow%,i%,7,1)
 NEXT i%
-PROCscores(line%-1)
+PROCset_new_score(line%-1)
 VDU 7
 drags%=FALSE
 ENDPROC
 :
 DEF PROCend
 LOCAL i%
-PROCtext("Too slow! Bad luck")
+PROCdisplay_message("Slow")
 PROCshow_sequence
 FOR i%=109 TO 120
 PROCicon_set_colours(MainWindow%,i%,7,1)
 NEXT i%
-PROCscores(line%-1)
+PROCset_new_score(line%-1)
 VDU 7
 drags%=FALSE
 ENDPROC
@@ -347,28 +311,87 @@ FOR peg%=0 TO 2
 	PROCset_guess_peg_colour(peg%, -1)
 NEXT peg%
 FOR peg%=3 TO 6
-	PROCset_guess_peg_colour(peg%, colours%(FNin(target%,peg%-2)))
+	PROCset_guess_peg_colour(peg%, FNin(target%, peg% - 2))
 NEXT peg%
 FOR peg%=7 TO 9
 	PROCset_guess_peg_colour(peg%, -1)
 NEXT peg%
 ENDPROC
 :
-DEF PROCtext(t$)
-PROCicon_set_indirected_text(MainWindow%, 107, t$)
+
+
+
+REM Set the colour of a larger guessing peg.
+REM
+REM \param icon%		The icon in the window to set (0 to 57).
+REM \param colour%		The peg "colour" (-1 for empty, else 0 to 9).
+:
+DEF PROCset_guess_peg_colour(icon%, colour%)
+LOCAL sprite$
+
+IF icon% < 0 OR icon% > 57 THEN ENDPROC
+IF colour% = -1 THEN sprite$ = "ph" ELSE sprite$ = "p" + STR$(colour%)
+PROCicon_set_indirected_text(MainWindow%, icon%, sprite$)
+PROCicon_redraw(MainWindow%, icon%)
+ENDPROC
+
+
+REM Return the "colour" of a guess peg, given its icon number.
+REM
+REM \param icon%		The icon of interest (58 ro 105).
+REM \return			The peg colour (0 to 9) or -1 for empty.
+:
+DEF FNget_guess_peg_colour(icon%)
+LOCAL sprite$
+
+IF icon% < 0 OR icon% >= 58 THEN =-1
+sprite$ = $FNicon_indirection(MainWindow%, icon%)
+IF LEFT$(sprite$, 1) <> "p" OR sprite$ = "ph" THEN =-1
+=VAL(MID$(sprite$, 2))
+
+
+REM Set the colour of a smaller scoring peg.
+REM
+REM \param icon%		The icon in the window to set (58 to 105).
+REM \param colour%		The peg "colour" (-1 for empty, 0 for white,
+REM				1 for black).
+:
+DEF PROCset_score_peg_colour(icon%, colour%)
+LOCAL sprite$
+
+IF icon% < 58 OR icon% > 105 THEN ENDPROC
+CASE colour% OF
+	WHEN 0		: sprite$ = "s0"
+	WHEN 1		: sprite$ = "s1"
+	OTHERWISE	: sprite$ = "sh"
+ENDCASE
+PROCicon_set_indirected_text(MainWindow%, icon%, sprite$)
+PROCicon_redraw(MainWindow%, icon%)
+ENDPROC
+
+
+REM Display a message in the status field at the top of the window.
+REM
+REM \param token$		The message token for the message to display.
+:
+DEF PROCdisplay_message(token$)
+PROCicon_set_indirected_text(MainWindow%, 107, FNmessage_lookup(token$))
 PROCicon_redraw(MainWindow%, 107)
 ENDPROC
+
+
+REM Set a new score, updating the high score if that's beaten.
+REM
+REM \param new_score%		The new score to set.
 :
-DEF PROCscores(n%)
-score%=n%
-IF score%<hi_score% THEN hi_score%=score%
-PROCicon_set_indirected_text(MainWindow%, 121, STR$(score%))
-PROCicon_set_indirected_text(MainWindow%, 123, STR$(hi_score%))
+DEF PROCset_new_score(new_score%)
+LastScore% = new_score%
+IF LastScore% < HighScore% THEN HighScore% = LastScore%
+PROCicon_set_indirected_text(MainWindow%, 121, STR$(LastScore%))
+PROCicon_set_indirected_text(MainWindow%, 123, STR$(HighScore%))
 PROCicon_redraw(MainWindow%, 121)
 PROCicon_redraw(MainWindow%, 123)
 ENDPROC
-
-
 
 
 REM Initialise ourselves, internally and with the Wimp.
@@ -442,8 +465,6 @@ IconbarMenu% = b%!0
 :
 PROCdrag_init
 :
-DIM colours%(9)
-colours%()=0,1,2,3,4,5,6,7,8,9
 DIM sequ%(3)
 sequ%()=-1
 hits%=0
@@ -451,8 +472,8 @@ near%=0
 target%=0
 guess%=0
 line%=0
-score%=12
-hi_score%=12
+LastScore%=12
+HighScore%=12
 drags%=TRUE
 solid%=FALSE
 :
@@ -465,7 +486,7 @@ ENDIF
 PROCline(1)
 :
 target%=FNnew_target
-PROCscores(12)
+PROCset_new_score(12)
 :
 
 :
