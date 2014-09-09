@@ -55,56 +55,96 @@ END
 REM Handle calls to Wimp_Poll and process the responses.
 :
 DEF PROCpoll
-LOCAL reopen%, reason%
+LOCAL reason%
 
 SYS "Wimp_Poll", &3C01, b% TO reason%
 
 CASE reason% OF
-	WHEN 2	: SYS "Wimp_OpenWindow",,b%
-	WHEN 3	: SYS "Wimp_CloseWindow",,b%
-	WHEN 6	: PROCmouse_click(b%!12, b%!16, b%!8)
-	WHEN 7	: PROCplace_colour
-	WHEN 9
- SYS "Wimp_GetPointerInfo",,q%
- reopen%=(q%!8 = 1)
- CASE !b% OF
-  WHEN 1 : OSCLI("%Filer_Run <Master$Dir>.!Help")
-  WHEN 2 : SolidDrags%=NOTSolidDrags%:PROCmenu_set_state(IconbarMenu%, 2, SolidDrags%, FALSE)
-  WHEN 3 : Quit%=TRUE
- ENDCASE
- IF reopen% THEN PROCmenu_create(FNmenu_current_handle, 0, 0)
-WHEN 17,18
- CASE b%!16 OF
-  WHEN 0      : Quit%=TRUE
-  WHEN &4E383 : PROCurl_bounce(b%)
- ENDCASE
-WHEN 19 : IF b%!16 = &4AF80 THEN PROCurl_bounce(b%)
+	WHEN 2		: SYS "Wimp_OpenWindow",,b%
+	WHEN 3		: SYS "Wimp_CloseWindow",,b%
+	WHEN 6		: PROCmouse_click(b%!12, b%!16, b%!8)
+	WHEN 7		: PROCplace_colour
+	WHEN 9		: PROCmenu_selection(b%)
+	WHEN 17, 18	: PROCuser_message(b%)
+ 	WHEN 19		: IF b%!16 = &4AF80 THEN PROCurl_bounce(b%)
 ENDCASE
 ENDPROC
+
+
+REM Process mouse clicks in windows.
+REM
+REM \param window%	The window under the mouse.
+REM \param icon%	The icon under the mouse.
+REM \param buttons%	The buttons involved in the selection.
 :
-DEF PROCmouse_click(window%,icon%,button%)
+DEF PROCmouse_click(window%, icon%, button%)
 CASE window% OF
-  WHEN -2
-    CASE button% OF
-      WHEN 2 : PROCmenu_create_iconbar(IconbarMenu%, !b%)
-      WHEN 1,4 : PROCwindow_open(MainWindow%)
-      ENDCASE
-  WHEN MainWindow%
-    CASE button% OF
-      WHEN 64 : PROCdrag_col(window%,icon%)
-      WHEN 1,4
-        CASE icon% OF
-          WHEN 106 : IF DragsEnabled% THEN PROCscore_next
-          WHEN 108 : PROCnew
-          ENDCASE
-      ENDCASE
-  WHEN InfoWindow%
-    IF button% = 4 AND icon% = 8 THEN
-      PROCurl_launch(FNmessage_lookup("SupportURL"))
-      PROCmenu_create(-1,0,0)
-    ENDIF
-  ENDCASE
+WHEN -2
+	CASE button% OF
+	WHEN 2
+		PROCmenu_create_iconbar(IconbarMenu%, !b%)
+	WHEN 1, 4
+		PROCwindow_open(MainWindow%)
+	ENDCASE
+
+WHEN MainWindow%
+	CASE button% OF
+	WHEN 64
+		PROCdrag_col(window%,icon%)
+	WHEN 1,4
+		CASE icon% OF
+			WHEN 106	: IF DragsEnabled% THEN PROCscore_next
+			WHEN 108	: PROCnew
+		ENDCASE
+	ENDCASE
+
+WHEN InfoWindow%
+	IF button% = 4 AND icon% = 8 THEN
+		PROCurl_launch(FNmessage_lookup("SupportURL"))
+		PROCmenu_create(-1,0,0)
+	ENDIF
+ENDCASE
 ENDPROC
+
+
+REM Process selections from menus.
+REM
+REM \param		The menu selection block.
+:
+DEF PROCmenu_selection(block%)
+LOCAL reopen%
+
+SYS "Wimp_GetPointerInfo",,q%
+reopen% = (q%!8 = 1)
+
+CASE FNmenu_current_handle OF
+WHEN IconbarMenu%
+	CASE !block% OF
+		WHEN 1	: OSCLI("%Filer_Run <Master$Dir>.!Help")
+		WHEN 2	: SolidDrags% = NOT SolidDrags% : PROCmenu_set_state(IconbarMenu%, 2, SolidDrags%, FALSE)
+		WHEN 3	: Quit% = TRUE
+	ENDCASE
+ENDCASE
+
+IF reopen% THEN PROCmenu_create(FNmenu_current_handle, 0, 0)
+ENDPROC
+
+
+REM Process incoming user messages.
+REM
+REM \param		The user message block.
+:
+DEF PROCuser_message(block%)
+CASE block%!16 OF
+	WHEN 0		: Quit% = TRUE
+	WHEN &4E383	: PROCurl_bounce(b%)
+ENDCASE
+ENDPROC
+
+
+
+
+
 
 
 
