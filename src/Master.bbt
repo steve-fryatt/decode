@@ -137,8 +137,71 @@ REM \param		The user message block.
 DEF PROCuser_message(block%)
 CASE block%!16 OF
 	WHEN 0		: Quit% = TRUE
+	WHEN &502	: PROCsend_interactive_help(b%)
 	WHEN &4E383	: PROCurl_bounce(b%)
 ENDCASE
+ENDPROC
+
+
+REM Process requests for interactive help text.
+REM
+REM \param message%		Pointer to the Message_HelpRequest block.
+:
+DEF PROCsend_interactive_help(message%)
+LOCAL root$, suffix$, found%, message$
+
+REM Compare the window handle to the windows we know about, and find the
+REM relevant token name.
+
+CASE message%!32 OF
+	WHEN -2			: root$ = "IconBar"
+	WHEN MainWindow%	: root$ = "Main"
+	WHEN InfoWindow%	: root$ = "Info"
+	OTHERWISE		: root$ = ""
+ENDCASE
+
+REM Look up the help text, either as a window message or by checking the
+REM menus that belong to us.
+
+IF root$ <> "" THEN
+	suffix$ = FNicon_validation_command(message%!32, message%!36, "N")
+
+	REM If there's a name in the validation string, use that; otherwise
+	REM check to see if there's a special case to set up.
+
+	IF suffix$ <> "" THEN
+		root$ += "." + suffix$
+	ELSE
+		IF message%!32 = MainWindow% THEN
+			CASE TRUE OF
+				WHEN message%!36 >= 0 AND message%!36 <= 9	: root$ += ".Pool"
+				WHEN message%!36 >= 10 AND message%!36 <= 57	: root$ += ".Guess"
+				WHEN message%!36 >= 58 AND message%!36 <= 105	: root$ += ".Mark"
+			ENDCASE
+		ENDIF
+	ENDIF
+	found% = FNmessage_lookup_result("Help." + root$, message$)
+ELSE
+	SYS "Wimp_GetMenuState", 1, q%, message%!32, message%!36
+	CASE FNmenu_current_handle OF
+REM		WHEN MainMenu%		: root$ = "MainMenu." + RIGHT$("00" + STR$(!q%), 2)
+		WHEN IconbarMenu%	: root$ = "IconBarMenu." + RIGHT$("00" + STR$(!q%), 2)
+	ENDCASE
+	
+	IF root$ <> "" THEN found% = FNmessage_lookup_result("Help." + root$, message$)
+ENDIF
+
+REM If no message was found, give up now.
+
+IF NOT found% THEN ENDPROC
+
+REM If a message was found, send it back to the requestor.
+
+message%!12 = message%!8
+message%!16 = &503
+$(message% + 20) = message$ + CHR$(0)
+!message% = 24+(LEN(message$) AND &FFFFFC)
+SYS "Wimp_SendMessage", 17, message%, message%!4
 ENDPROC
 
 
@@ -459,9 +522,10 @@ PROCwimperror_initialise(task_name$, task_sprite$)
 
 REM Initialise with the Wimp.
 
-q%!0 = &4E383
-q%!4 = &4AF80
-q%!8 = 0
+q%!0 = &502
+q%!4 = &4E383
+q%!8 = &4AF80
+q%!12 = 0
 
 SYS "Wimp_Initialise", 310, &4B534154, task_name$, q%
 

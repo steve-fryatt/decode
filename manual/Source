@@ -83,6 +83,7 @@ Development release for testing and feedback.
 <li><menu>Help</menu> menu entry added to iconbar menu.
 <li><icon>Website</icon> button added to <window>program information</window> window.
 <li>Menus remain open when selections are made with <mouse>adjust</mouse>.
+<li>Add support for Interactive Help.
 </list>
 
 </chapter>
