@@ -93,7 +93,7 @@ WHEN MainWindow%
 		PROCdrag_peg(icon%)
 	WHEN 1,4
 		CASE icon% OF
-			WHEN 106	: IF DragsEnabled% THEN PROCscore_next
+			WHEN 106	: IF DragsEnabled% THEN PROCscore_current_line
 			WHEN 108	: PROCnew_game
 		ENDCASE
 	ENDCASE
@@ -223,10 +223,7 @@ WHEN icon% >= 10 AND icon% <= 57
 	PROCstart_drag(icon%)
 	DragColour% = FNget_guess_peg_colour(icon%)
 	DragFrom% = icon%
-	IF DragFrom% > ValidDropIcons% AND SolidDrags% THEN
-		PROCset_guess_peg_colour(DragFrom%, -1)
-		IF DragFrom% - ValidDropIcons% < 5 AND DragFrom% - ValidDropIcons% > -1 THEN GuessSequence%(DragFrom% - ValidDropIcons% - 1) = -1
-	ENDIF
+	IF DragFrom% >= ValidDropIcons% AND SolidDrags% THEN PROCset_guess_peg_colour(DragFrom%, -1)
 ENDCASE
 ENDPROC
 
@@ -244,7 +241,7 @@ IF icon% < 0 OR icon% > 57 THEN ENDPROC
 
 REM Set up the dragging parameters.
 
-sprite$=$FNicon_indirection(MainWindow%, icon%)
+sprite$ = $FNicon_indirection(MainWindow%, icon%)
 
 !q% = MainWindow%
 SYS "Wimp_GetWindowState",,q%
@@ -297,86 +294,100 @@ REM \param icon%		The icon to place the peg in.
 :
 DEF PROCdrop_peg(icon%)
 
-IF icon% > ValidDropIcons% AND icon% <= 57 THEN
-	PROCset_guess_peg_colour(icon%, DragColour%)
-	IF icon% - ValidDropIcons% < 5 AND icon% - ValidDropIcons% > -1 THEN GuessSequence%(icon% - ValidDropIcons% - 1) = DragColour%
-ENDIF
+IF icon% >= ValidDropIcons% AND icon% <= 57 THEN PROCset_guess_peg_colour(icon%, DragColour%)
 
-IF DragFrom% > ValidDropIcons% AND DragFrom% <> icon% AND NOT SolidDrags% THEN
-	PROCset_guess_peg_colour(DragFrom%, -1)
-	IF DragFrom% - ValidDropIcons% < 5 AND DragFrom% - ValidDropIcons% > -1 THEN GuessSequence%(DragFrom% - ValidDropIcons% - 1) = -1
+IF DragFrom% >= ValidDropIcons% AND DragFrom% <> icon% AND NOT SolidDrags% THEN PROCset_guess_peg_colour(DragFrom%, -1)
+ENDPROC
+
+
+REM Score the current line of pegs.
+:
+DEF PROCscore_current_line
+LOCAL guess%, hits%, near%
+
+REM Get the guess from the playing line, and exit with an error if the line
+REM isn't complete.
+
+guess% = FNget_guess
+
+IF guess% = -1 THEN PROCwimperror_report(FNmessage_lookup("NotComplete"), 1, %01, "") : ENDPROC
+
+REM Calculate the scores, and update the display.
+
+PROCscore(guess%, TargetValue%, near%, hits%)
+
+PROCplot_score_line(CurrentLine%, 1, 0, hits%)
+PROCplot_score_line(CurrentLine%, 0, hits%, near%)
+
+REM Move on to the next line.
+
+ValidDropIcons% += 4
+CurrentLine% += 1
+
+IF CurrentLine% <= 12 THEN PROChighlight_line(CurrentLine%)
+
+REM Work out if the game has been won or lost.
+
+IF hits% = 4 THEN
+	PROCend_game("Correct")
+ELSE
+	IF CurrentLine% = 13 THEN PROCend_game("Slow")
 ENDIF
 ENDPROC
 
 
-
-:
-:
-DEF PROCscore_next
-guess%=FNget_guess
-IF guess%=-1 THEN PROCwimperror_report(FNmessage_lookup("NotComplete"), 1, %01, "") : ENDPROC
-hits%=0 : near%=0
-PROCscore(guess%,TargetValue%,near%,hits%)
-PROCblacks(hits%,0,CurrentLine%)
-PROCwhites(near%,hits%,CurrentLine%)
-GuessSequence%()=-1
-ValidDropIcons%+=4
-CurrentLine%+=1
-IF CurrentLine%<=12 THEN PROChighlight_line(CurrentLine%)
-IF hits%=4 THEN PROCend_game("Correct")
-IF CurrentLine%=13 AND hits%<>4 THEN PROCend_game("Slow")
-ENDPROC
+REM Get the guess from the current line of pegs.
+REM
+REM \return			The current guess, or -1 if the line is incomplete.
 :
 DEF FNget_guess
-LOCAL s$,i%,fail%
-fail%=FALSE
-FOR i%=0 TO 3
-IF GuessSequence%(i%)<>-1 THEN
-s$+=STR$(GuessSequence%(i%))
-ELSE
-fail%=TRUE
-ENDIF
+LOCAL sequence$, i%, fail%, peg%
+
+fail% = FALSE
+
+FOR i% = 0 TO 3
+	peg% = FNget_guess_peg_colour(ValidDropIcons% + i%)
+	IF peg% <> -1 THEN sequence$ += STR$(peg%) ELSE fail% = TRUE
 NEXT i%
+
 IF fail% THEN =-1
-=VAL(s$)
+=VAL(sequence$)
+
+
+REM Score a guess against a taret sequence.
+REM
+REM \param guess%		The guess to be scored.
+REM \param target%		The target to score against.
+REM \param near%		Return the number of near hits.
+REM \param hits%		Return the number of direct hits.
 :
-DEF PROCscore(n%,t%,RETURN c%,RETURN p%)
-LOCAL i%,b%
-c%=0 : p%=0
-FOR i%=1 TO 4
-FOR b%=1 TO 4
-IF FNin(n%,i%)=FNin(t%,b%) THEN
-IF i%=b% THEN p%+=1 ELSE c%+=1
-ENDIF
-NEXT b%
+DEF PROCscore(guess%, target%, RETURN near%, RETURN hits%)
+LOCAL i%, j%
+
+near% = 0
+hits% = 0
+
+FOR i% = 1 TO 4
+	FOR j% = 1 TO 4
+		IF FNin(guess%, i%) = FNin(target%, j%) THEN
+			IF i% = j% THEN hits% += 1 ELSE near% += 1
+		ENDIF
+	NEXT j%
 NEXT i%
 ENDPROC
+
+
+REM Return a digit from a sequence number.
+REM
+REM \param number%		The number to break up.
+REM \param position%		The position to return the value from.
+REM \return			The value in the specified position.
 :
-DEF PROCblacks(n%,o%,l%)
-LOCAL index%,plot%
-IF n%=0 THEN ENDPROC
-index%=58+((l%-1)*4)+o%
-FOR plot%=index% TO index%+n%-1
-	PROCset_score_peg_colour(plot%, 1)
-NEXT plot%
-ENDPROC
-:
-DEF PROCwhites(n%,o%,l%)
-LOCAL index%,plot%
-IF n%=0 THEN ENDPROC
-index%=58+((l%-1)*4)+o%
-FOR plot%=index% TO index%+n%-1
-	PROCset_score_peg_colour(plot%, 0)
-NEXT plot%
-ENDPROC
-:
-DEF FNin(n%,p%)
-LOCAL s$
-s$=STR$(n%)
-WHILE LENs$<4
-s$="0"+s$
-ENDWHILE
-=VAL(MID$(s$,p%,1))
+DEF FNin(number%, position%)
+LOCAL number$
+
+number$ = RIGHT$("0000" + STR$(number%), 4)
+=VAL(MID$(number$, position%, 1))
 
 
 REM Start a new game.
@@ -390,8 +401,7 @@ TargetValue% = FNnew_target
 
 REM Reset the global variables.
 
-GuessSequence%() = -1
-ValidDropIcons% = 9
+ValidDropIcons% = 10
 CurrentLine% = 1
 DragsEnabled% = TRUE
 
@@ -419,11 +429,11 @@ REM
 REM \return			The new target value.
 :
 DEF FNnew_target
-LOCAL target%, hit%, near%
+LOCAL target%, hits%, near%
 
 REPEAT
 	target% = RND(9999)
-	PROCscore(target%, target%, near%, hit%)
+	PROCscore(target%, target%, near%, hits%)
 UNTIL near% = 0
 =target%
 
@@ -467,6 +477,30 @@ DragsEnabled%=FALSE
 ENDPROC
 
 
+REM Plot a sequence of scoring pegs on a line.
+REM
+REM \param line%		The line to plot.
+REM \param colour%		The score peg colour to plot.
+REM \param start%		The offset for the first peg.
+REM \param pegs%		The number of pegs to place.
+:
+DEF PROCplot_score_line(line%, colour%, start%, pegs%)
+LOCAL index%, icon%
+
+REM If there are no pegs, there's nothing to do.
+
+IF pegs% = 0 THEN ENDPROC
+
+REM Find the first icon in the row, then plot the required pegs.
+
+index% = 58 + ((line% - 1) * 4) + start%
+
+FOR icon% = index% TO index% + pegs% - 1
+	PROCset_score_peg_colour(icon%, colour%)
+NEXT icon%
+ENDPROC
+
+
 REM Highlight a row number in the guess grid, un-highlighting the previous line
 REM if not the first.
 REM
@@ -475,7 +509,7 @@ REM \param line%		The line to highlight.
 DEF PROChighlight_line(line%)
 IF line% < 1 OR line% > 12 THEN ENDPROC
 
-IF line% > 1 THEN PROCicon_set_colours(MainWindow%, (line% - 107, 7, 1)
+IF line% > 1 THEN PROCicon_set_colours(MainWindow%, line% + 107, 7, 1)
 PROCicon_set_colours(MainWindow%, line% + 108, 11, 1)
 ENDPROC
 
@@ -615,15 +649,6 @@ PROCmenu_initialise
 b%!0 = InfoWindow%
 PROCmenu_load_templates(resources$ + "Menus", b%)
 IconbarMenu% = b%!0
-
-
-
-DIM GuessSequence%(3)
-
-hits%=0
-near%=0
-TargetValue% = 0
-guess%=0
 
 REM Initialise the dragging system.
 
