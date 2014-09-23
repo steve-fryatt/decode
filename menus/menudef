@@ -32,3 +32,11 @@ menu(icon_bar_menu, "Master") {
 	item("Quit");
 }
 
+/**
+ * Main Window Menu
+ */
+
+menu(main_menu, "Crosses") {
+	item("New game");
+/*	item("Reset scores"); */
+}

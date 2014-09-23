@@ -91,11 +91,15 @@ WHEN MainWindow%
 	CASE button% OF
 	WHEN 64
 		PROCdrag_peg(icon%)
+
 	WHEN 1,4
 		CASE icon% OF
 			WHEN 106	: IF DragsEnabled% THEN PROCscore_current_line
 			WHEN 108	: PROCnew_game
 		ENDCASE
+
+	WHEN 2
+		PROCmenu_create(MainMenu%, !b%, b%!4)
 	ENDCASE
 
 WHEN InfoWindow%
@@ -118,6 +122,12 @@ SYS "Wimp_GetPointerInfo",,q%
 reopen% = (q%!8 = 1)
 
 CASE FNmenu_current_handle OF
+WHEN MainMenu%
+	CASE !block% OF
+	WHEN 0
+		PROCnew_game
+	ENDCASE
+
 WHEN IconbarMenu%
 	CASE !block% OF
 		WHEN 1	: OSCLI("%Filer_Run <Master$Dir>.!Help")
@@ -184,7 +194,7 @@ IF root$ <> "" THEN
 ELSE
 	SYS "Wimp_GetMenuState", 1, q%, message%!32, message%!36
 	CASE FNmenu_current_handle OF
-REM		WHEN MainMenu%		: root$ = "MainMenu." + RIGHT$("00" + STR$(!q%), 2)
+		WHEN MainMenu%		: root$ = "MainMenu." + RIGHT$("00" + STR$(!q%), 2)
 		WHEN IconbarMenu%	: root$ = "IconBarMenu." + RIGHT$("00" + STR$(!q%), 2)
 	ENDCASE
 	
@@ -649,6 +659,7 @@ PROCmenu_initialise
 b%!0 = InfoWindow%
 PROCmenu_load_templates(resources$ + "Menus", b%)
 IconbarMenu% = b%!0
+MainMenu% = b%!4
 
 REM Initialise the dragging system.
 

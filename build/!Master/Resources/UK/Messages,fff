@@ -51,7 +51,7 @@ Help.Main.Process:\Sask the computer to mark the current guess.
 Help.Info:\Tprogram information \w for the Master application.
 Help.Info.Website:\Tprogram information \w for the Master application.|M\Svisit its website for information and updates.
 
-# Help.MainMenu.00:\Sstart a new game.
+Help.MainMenu.00:\Sstart a new game.
 
 Help.IconBarMenu.00:\Rto see information about Master and visit its website.
 Help.IconBarMenu.01:\Sread the Master documentation.
