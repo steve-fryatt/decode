@@ -590,7 +590,7 @@ ENDPROC
 REM Initialise ourselves, internally and with the Wimp.
 :
 DEF PROCinitialise
-LOCAL resources$, task_name$, task_sprite$, indirected_data%, indirected_size%, ibar_icon%
+LOCAL resources$, task_name$, task_sprite$, indirected_data%, indirected_size%, ibar_icon%, time%
 
 REM Set up the quit flag and global data blocks.
 
@@ -670,7 +670,11 @@ HighScore%=12
 
 PROCset_new_score(12)
 
-REM Create a new playing board.
+REM Randomly seed RND() then create a new playing board.
+
+SYS "OS_ReadMonotonicTime" TO time%
+IF time% >= 0 THEN time% = &FFFFFFFF - time%
+time% = RND(time%)
 
 PROCnew_game
 
