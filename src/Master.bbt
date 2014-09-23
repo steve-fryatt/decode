@@ -83,7 +83,7 @@ WHEN -2
 	CASE button% OF
 	WHEN 2
 		PROCmenu_create_iconbar(IconbarMenu%, !b%)
-	WHEN 1, 4
+	WHEN 4
 		PROCwindow_open(MainWindow%)
 	ENDCASE
 
@@ -92,7 +92,7 @@ WHEN MainWindow%
 	WHEN 64
 		PROCdrag_peg(icon%)
 
-	WHEN 1,4
+	WHEN 4
 		CASE icon% OF
 			WHEN 106	: IF DragsEnabled% THEN PROCscore_current_line
 			WHEN 108	: PROCnew_game
