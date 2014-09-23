@@ -93,10 +93,7 @@ WHEN MainWindow%
 		PROCdrag_peg(icon%)
 
 	WHEN 4
-		CASE icon% OF
-			WHEN 106	: IF DragsEnabled% THEN PROCscore_current_line
-			WHEN 108	: PROCnew_game
-		ENDCASE
+		IF icon% >= 123 AND icon% <= 134 AND DragsEnabled% THEN PROCscore_current_line
 
 	WHEN 2
 		PROCmenu_create(MainMenu%, !b%, b%!4)
@@ -187,6 +184,7 @@ IF root$ <> "" THEN
 				WHEN message%!36 >= 0 AND message%!36 <= 9	: root$ += ".Pool"
 				WHEN message%!36 >= 10 AND message%!36 <= 57	: root$ += ".Guess"
 				WHEN message%!36 >= 58 AND message%!36 <= 105	: root$ += ".Mark"
+				WHEN message%!36 >= 123 AND message%!36 <= 134	: root$ += ".Process"
 			ENDCASE
 		ENDIF
 	ENDIF
@@ -306,7 +304,9 @@ DEF PROCdrop_peg(icon%)
 
 IF icon% >= ValidDropIcons% AND icon% <= 57 THEN PROCset_guess_peg_colour(icon%, DragColour%)
 
-IF DragFrom% >= ValidDropIcons% AND DragFrom% <> icon% AND NOT SolidDrags% THEN PROCset_guess_peg_colour(DragFrom%, -1)
+IF DragFrom% >= ValidDropIcons% AND DragFrom% <> icon% AND NOT SolidDrags% THEN PROCset_guess_peg_colour(DragFrom%, -1)	
+
+PROCset_score_button(CurrentLine%, FNget_guess <> -1)
 ENDPROC
 
 
@@ -330,6 +330,8 @@ PROCplot_score_line(CurrentLine%, 1, 0, hits%)
 PROCplot_score_line(CurrentLine%, 0, hits%, near%)
 
 REM Move on to the next line.
+
+PROCset_score_button(CurrentLine%, FALSE)
 
 ValidDropIcons% += 4
 CurrentLine% += 1
@@ -473,7 +475,7 @@ NEXT i%
 
 REM Reset the row numbers to black.
 
-FOR i% = 109 TO 120
+FOR i% = 107 TO 118
 	PROCicon_set_colours(MainWindow%, i%, 7, 1)
 NEXT i%
 
@@ -519,8 +521,19 @@ REM \param line%		The line to highlight.
 DEF PROChighlight_line(line%)
 IF line% < 1 OR line% > 12 THEN ENDPROC
 
-IF line% > 1 THEN PROCicon_set_colours(MainWindow%, line% + 107, 7, 1)
-PROCicon_set_colours(MainWindow%, line% + 108, 11, 1)
+IF line% > 1 THEN PROCicon_set_colours(MainWindow%, line% + 105, 7, 1)
+PROCicon_set_colours(MainWindow%, line% + 106, 11, 1)
+ENDPROC
+
+
+REM Show or hide a score button.
+REM
+REM \param line%		The line to update.
+REM \param show%		TRUE to show the button; FALSE to hide it.
+:
+DEF PROCset_score_button(line%, show%)
+PROCicon_set_deleted(MainWindow%, 122 + line%, NOT show%)
+PROCicon_redraw(MainWindow%, 122 + line%)
 ENDPROC
 
 
@@ -590,10 +603,10 @@ REM \param new_score%		The new score to set.
 DEF PROCset_new_score(new_score%)
 LastScore% = new_score%
 IF LastScore% < HighScore% THEN HighScore% = LastScore%
-PROCicon_set_indirected_text(MainWindow%, 121, STR$(LastScore%))
-PROCicon_set_indirected_text(MainWindow%, 123, STR$(HighScore%))
+PROCicon_set_indirected_text(MainWindow%, 119, STR$(LastScore%))
+PROCicon_set_indirected_text(MainWindow%, 121, STR$(HighScore%))
+PROCicon_redraw(MainWindow%, 119)
 PROCicon_redraw(MainWindow%, 121)
-PROCicon_redraw(MainWindow%, 123)
 ENDPROC
 
 
@@ -642,6 +655,9 @@ PROCtemplate_open(resources$ + "Templates")
 PROCtemplate_load("Board", b%, indirected_data%, indirected_size%, -1)
 b%!64 = SpriteArea%
 FOR i% = 0 TO 105
+	b%!(88 + 32*i% + 24) = SpriteArea%
+NEXT i%
+FOR i% = 123 TO 134
 	b%!(88 + 32*i% + 24) = SpriteArea%
 NEXT i%
 SYS "Wimp_CreateWindow",,b% TO MainWindow%
