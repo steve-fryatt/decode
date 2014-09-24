@@ -36,7 +36,7 @@ menu(icon_bar_menu, "Master") {
  * Main Window Menu
  */
 
-menu(main_menu, "Crosses") {
+menu(main_menu, "Master") {
 	item("New game");
 /*	item("Reset scores"); */
 }
