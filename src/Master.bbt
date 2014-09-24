@@ -654,12 +654,11 @@ DIM indirected_data% indirected_size%
 PROCtemplate_open(resources$ + "Templates")
 PROCtemplate_load("Board", b%, indirected_data%, indirected_size%, -1)
 b%!64 = SpriteArea%
-FOR i% = 0 TO 105
-	b%!(88 + 32*i% + 24) = SpriteArea%
-NEXT i%
-FOR i% = 123 TO 134
-	b%!(88 + 32*i% + 24) = SpriteArea%
-NEXT i%
+IF b%!84 > 0 THEN
+	FOR i% = 0 TO b%!84 - 1
+		IF (b%!(88 + 32*i% + 16) AND &102) = &102 THEN b%!(88 + 32*i% + 24) = SpriteArea%
+	NEXT i%
+ENDIF
 SYS "Wimp_CreateWindow",,b% TO MainWindow%
 PROCtemplate_load("ProgInfo", b%, indirected_data%, indirected_size%, -1)
 SYS "Wimp_CreateWindow",,b% TO InfoWindow%
