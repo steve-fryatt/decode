@@ -591,8 +591,8 @@ REM
 REM \param token$		The message token for the message to display.
 :
 DEF PROCdisplay_message(token$)
-PROCicon_set_indirected_text(MainWindow%, 107, FNmessage_lookup(token$))
-PROCicon_redraw(MainWindow%, 107)
+PROCicon_set_indirected_text(MainWindow%, 106, FNmessage_lookup(token$))
+PROCicon_redraw(MainWindow%, 106)
 ENDPROC
 
 
