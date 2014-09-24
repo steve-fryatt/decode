@@ -40,9 +40,7 @@ The necessary libraries and build tools can be found at <link ref="#url http://w
 
 <chapter title="Installing Master" file="Install">
 
-<cite>Master</cite> can be run off a hard disc or floppy disc.
-
-To install <cite>Master</cite> on a hard disc, copy the <file>!Master</file> application to a suitable place on your disc.
+<cite>Master</cite> requires RISC&nbsp;OS&nbsp;3.1 or later, and can be run off a hard disc or floppy disc. To install <cite>Master</cite> on a hard disc, copy the <file>!Master</file> application to a suitable place on your disc.
 
 </chapter>
 
@@ -52,11 +50,19 @@ To install <cite>Master</cite> on a hard disc, copy the <file>!Master</file> app
 
 <chapter title="Using Master" file="Use">
 
-The aim of mastermind is to guess the sequence of four colours selected by the computer; no colour will be used more than once. Click <mouse>Select</mouse> on the iconbar icon to open the main window and fill in the first empty row in the table by dragging colours down from the line at the top; to lose a peg, drag it off the area of squares. When you have completed the row, click on the <icon>Score</icon> button and the computer will mark the guess.
+The aim of <cite>Master</cite> is to guess a sequence of four colours selected randomly by the computer. Load it on to the iconbar in the usual way and click <mouse>select</mouse> on its icon to open the game window.
 
-A black mark indicates a colour in the correct place; a white mark indicates a correct colour in the wrong column. Unless you have got four black marks, fill the second row in the same way. You can drag colours from any of the rows you have already filled.
+Sequences always contain four different coloured pegs from the row of ten at the top of the window: no colour will be used more than once. Up to twelve guesses can be made and after each, the computer will score the guess to show how close it is to the correct answer. Using this information, it should be possible to identify the chosen sequence.
 
-Once you have guessed the code, click on <icon>New</icon> for a new game.
+Starting with row 1, whose number will be highlighted in red, drag pegs from the row at the top of the window to the four larger holes on the left. Pegs already in the row can be dragged to move them around: the rows below can be used as &lsquo;scratch space&rsquo; if required. To lose a peg completely, drop it away from a hole.
+
+Once the row is complete and able to be scored, a <icon>?</icon> button appears to its right: click on this, and the computer will mark the guess. Marks are given using the smaller holes on the right: a black peg indicates a correct colour that is in the correct position in the row, while a white peg indicates a correct colour that is in the wrong position. The order of the black and white pegs has no significance.
+
+Unless you strike lucky with four black pegs on the first attempt, the game moves on to row 2 and the process repeats until the correct sequence is found (or all twelve rows are used). After the first row, pegs can also be dragged in from previous guesses in the rows above.
+
+Once you have guessed the code or run out of attempts (or just got bored of the current sequence), click <mouse>menu</mouse> over the main window and select <menu>New Game</menu>.
+
+The <menu>Solid Drags</menu> option in the iconbar menu alternates between dragging sprites and dotted boxes; there is rarely any need to turn this option off.
 
 </chapter>
 
@@ -74,9 +80,9 @@ Here is a list of the versions of Master, along with all the changes made.
 First public release.
 
 
-<subhead title="Test Build">
+<subhead title="1.00 (24 September 2014)">
 
-Development release for testing and feedback.
+Second public release.
 
 <list>
 <li>Build system revised and license updated to EUPL.
@@ -84,6 +90,7 @@ Development release for testing and feedback.
 <li><icon>Website</icon> button added to <window>program information</window> window.
 <li>Menus remain open when selections are made with <mouse>adjust</mouse>.
 <li>Add support for Interactive Help.
+<li>Restructured user interface, removing <icon>Score</icon> and <icon>New</icon> buttons and implementing main window menu.
 </list>
 
 </chapter>
