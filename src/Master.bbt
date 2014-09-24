@@ -419,16 +419,20 @@ DragsEnabled% = TRUE
 
 REM Update the game board display.
 
-FOR peg%=10 TO 57
+FOR peg% = 10 TO 57
 	PROCset_guess_peg_colour(peg%, -1)
 NEXT peg%
 
-FOR peg%=58 TO 105
+FOR peg% = 58 TO 105
 	PROCset_score_peg_colour(peg%, -1)
 NEXT peg%
 
-FOR peg%=0 TO 9
+FOR peg% = 0 TO 9
 	PROCset_guess_peg_colour(peg%, peg%)
+NEXT peg%
+
+FOR peg% = 1 TO 12
+	PROCset_score_button(peg%, FALSE)
 NEXT peg%
 
 PROCdisplay_message("Guess")
