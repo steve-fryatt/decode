@@ -144,8 +144,8 @@ REM \param		The user message block.
 DEF PROCuser_message(block%)
 CASE block%!16 OF
 	WHEN 0		: Quit% = TRUE
-	WHEN &502	: PROCsend_interactive_help(b%)
-	WHEN &4E383	: PROCurl_bounce(b%)
+	WHEN &502	: PROCsend_interactive_help(block%)
+	WHEN &4E383	: PROCurl_bounce(block%)
 ENDCASE
 ENDPROC
 
