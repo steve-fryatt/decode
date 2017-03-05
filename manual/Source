@@ -10,7 +10,7 @@
 =============================================================================
 Master - Mastermind in the Desktop                               Version $$version$$
 
-(c) Stephen Fryatt, 1993-2014                  $$date$$
+(c) Stephen Fryatt, 1993-2017                  $$date$$
 =============================================================================
 
 </literal>
@@ -19,7 +19,7 @@ Master - Mastermind in the Desktop                               Version $$versi
 
 
 
-<chapter title="License" file="License">
+<chapter title="Licence" file="Licence">
 
 <cite>Master</cite> is licensed under the EUPL, Version&nbsp;1.1 only (the &ldquo;Licence&rdquo;); you may not use this work except in compliance with the Licence.
 
@@ -91,6 +91,16 @@ Second public release.
 <li>Menus remain open when selections are made with <mouse>adjust</mouse>.
 <li>Add support for Interactive Help.
 <li>Restructured user interface, removing <icon>Score</icon> and <icon>New</icon> buttons and implementing main window menu.
+</list>
+
+
+<subhead title="1.01 (5 March 2017)">
+
+Update to second public release.
+
+<list>
+<li>Fix <file>!Help</file> so that <menu>Help</menu> menu items work correctly.
+<li>Tidy up Wimp message handling code.
 </list>
 
 </chapter>
