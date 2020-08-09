@@ -1,0 +1,14 @@
+Package: Master
+Version: 1.01-1
+Section: Games
+Priority: Optional
+Maintainer: Stephen Fryatt <info@stevefryatt.org.uk>
+Standards-Version: 0.6.0
+Environment: any
+Licence: Free
+Description: Guess codes chosen by the computer
+ Master is a desktop version of the 'guess the hidden code' game. Can you
+ guess the sequence of colours selected by the computer in only twelve
+ attempts? Complete with a drag and drop interface.
+Homepage: http://www.stevefryatt.org.uk/software/games/
+Components: Apps.Games.!Master (Movable)
