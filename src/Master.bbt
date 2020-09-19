@@ -26,6 +26,7 @@ LIBRARY "BASIC:Icon"
 LIBRARY "BASIC:Menu"
 LIBRARY "BASIC:Message"
 LIBRARY "BASIC:Resources"
+LIBRARY "BASIC:String"
 LIBRARY "BASIC:Template"
 LIBRARY "BASIC:Url"
 LIBRARY "BASIC:WimpError"
@@ -627,11 +628,14 @@ DIM b% 5000, q% 255, a% 255
 
 REM Locate the application resources.
 
-resources$ = FNresources_find_territory_folder("<Master$Dir>.Resources")
+PROCresources_initialise_paths("<Master$Dir>.Resources", "UK", "Master$Language")
 
 REM Load the messages file.
 
-PROCmessage_initialise(resources$ + "Messages")
+resources$ = FNresources_find_file("Messages", &FFF)
+IF resources$ = "" THEN ERROR 255, "Unable to find Messages file"
+
+PROCmessage_initialise(resources$)
 
 task_name$ = FNmessage_lookup("TaskName")
 task_sprite$ = FNmessage_lookup("TaskSpr")
@@ -652,10 +656,13 @@ SpriteArea% = FNwimpsprite_load_user_sprites("<Master$Dir>.SpriteFile")
 
 REM Load the window templates.
 
+resources$ = FNresources_find_file("Templates", &FEC)
+IF resources$ = "" THEN ERROR 255, "Unable to find Templates file"
+
 indirected_size% = 2048
 DIM indirected_data% indirected_size%
 
-PROCtemplate_open(resources$ + "Templates")
+PROCtemplate_open(resources$)
 PROCtemplate_load("Board", b%, indirected_data%, indirected_size%, -1)
 b%!64 = SpriteArea%
 IF b%!84 > 0 THEN
@@ -673,10 +680,13 @@ $FNicon_indirection(InfoWindow%, 6) = build_version$ + " (" + build_date$ + ")"
 
 REM Initialise and load the menu templates.
 
+resources$ = FNresources_find_file("Menus", &FFD)
+IF resources$ = "" THEN ERROR 255, "Unable to find Menus file"
+
 PROCmenu_initialise
 
 b%!0 = InfoWindow%
-PROCmenu_load_templates(resources$ + "Menus", b%)
+PROCmenu_load_templates(resources$, b%)
 IconbarMenu% = b%!0
 MainMenu% = b%!4
 
