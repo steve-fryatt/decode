@@ -2,7 +2,7 @@ REM >!Help
 REM
 REM Copyright 2001-2020, Stephen Fryatt (info@stevefryatt.org.uk)
 REM
-REM This file is part of Master:
+REM This file is part of Decode:
 REM
 REM   http://www.stevefryatt.org.uk/software/
 REM
@@ -30,9 +30,9 @@ REM Change this directory and the names of the target files and variables as req
 
 StrongHelp$ = ""
 TextHelp$ = "HelpText"
-ResourceDir$ = "<Master$Dir>.Resources"
-HelpTextVar$ = "Master$HelpText"
-LanguageVar$ = "Master$Language"
+ResourceDir$ = "<Decode$Dir>.Resources"
+HelpTextVar$ = "Decode$HelpText"
+LanguageVar$ = "Decode$Language"
 FallbackDir$ = "UK"
 
 DIM b% 255

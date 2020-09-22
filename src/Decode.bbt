@@ -1,8 +1,8 @@
-REM >!Master
+REM >!Decode
 REM
-REM Copyright 1993-2014, Stephen Fryatt (info@stevefryatt.org.uk)
+REM Copyright 1993-2020, Stephen Fryatt (info@stevefryatt.org.uk)
 REM
-REM This file is part of Master:
+REM This file is part of Decode:
 REM
 REM   http://www.stevefryatt.org.uk/software/
 REM
@@ -33,7 +33,7 @@ LIBRARY "BASIC:WimpError"
 LIBRARY "BASIC:WimpSprite"
 LIBRARY "BASIC:Window"
 
-PROCwimperror_initialise("Master", "!master")
+PROCwimperror_initialise("Decode", "!decode")
 ON ERROR result% = FNwimperror_program : END
 
 REM These values get replaced by tokenize.
@@ -128,7 +128,7 @@ WHEN MainMenu%
 
 WHEN IconbarMenu%
 	CASE !block% OF
-		WHEN 1	: OSCLI("%Filer_Run <Master$Dir>.!Help")
+		WHEN 1	: OSCLI("%Filer_Run <Decode$Dir>.!Help")
 		WHEN 2	: SolidDrags% = NOT SolidDrags% : PROCmenu_set_state(IconbarMenu%, 2, SolidDrags%, FALSE)
 		WHEN 3	: Quit% = TRUE
 	ENDCASE
@@ -628,7 +628,7 @@ DIM b% 5000, q% 255, a% 255
 
 REM Locate the application resources.
 
-PROCresources_initialise_paths("<Master$Dir>.Resources", "UK", "Master$Language")
+PROCresources_initialise_paths("<Decode$Dir>.Resources", "UK", "Decode$Language")
 
 REM Load the messages file.
 
@@ -652,7 +652,7 @@ SYS "Wimp_Initialise", 310, &4B534154, task_name$, q%
 
 REM Load the application sprites.
 
-SpriteArea% = FNwimpsprite_load_user_sprites("<Master$Dir>.SpriteFile")
+SpriteArea% = FNwimpsprite_load_user_sprites("<Decode$Dir>.SpriteFile")
 
 REM Load the window templates.
 

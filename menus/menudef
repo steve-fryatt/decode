@@ -1,6 +1,6 @@
-/* Copyright 2014, Stephen Fryatt (info@stevefryatt.org.uk)
+/* Copyright 2014-2020, Stephen Fryatt (info@stevefryatt.org.uk)
  *
- * This file is part of Master:
+ * This file is part of Deocde:
  *
  *   http://www.stevefryatt.org.uk/software/
  *
@@ -23,7 +23,7 @@
 
 /* Iconbar Menu */
 
-menu(icon_bar_menu, "Master") {
+menu(icon_bar_menu, "Decode") {
 	item("Info") {
 		d_box(info_window);
 	}
@@ -36,7 +36,7 @@ menu(icon_bar_menu, "Master") {
  * Main Window Menu
  */
 
-menu(main_menu, "Master") {
+menu(main_menu, "Decode") {
 	item("New game");
 /*	item("Reset scores"); */
 }

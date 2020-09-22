@@ -1,8 +1,8 @@
 .vscode
 build/Licence,fff
 build/ReadMe,fff
-build/!Master/!Help,ffb
-build/!Master/!RunImage,ffb
-build/!Master/Resources/UK/HelpText,fff
-build/!Master/Resources/UK/Menus,ffd
+build/!Decode/!Help,ffb
+build/!Decode/!RunImage,ffb
+build/!Decode/Resources/UK/HelpText,fff
+build/!Decode/Resources/UK/Menus,ffd
 build/package

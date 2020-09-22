@@ -1,8 +1,8 @@
 | >!Boot
 |
-| Copyright 2017, Stephen Fryatt
+| Copyright 2017-2020, Stephen Fryatt
 |
-| This file is part of Master:
+| This file is part of Decode:
 |
 |   http://www.stevefryatt.org.uk/software/
 |
@@ -22,7 +22,7 @@
 | See the Licence for the specific language governing
 | permissions and limitations under the Licence.
 
-If "<Master$Dir>"="" Then Set Master$Dir <Obey$Dir>
+If "<Decode$Dir>"="" Then Set Decode$Dir <Obey$Dir>
 
-IconSprites <Master$Dir>.!Sprites
+IconSprites <Decode$Dir>.!Sprites
 

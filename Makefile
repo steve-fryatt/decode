@@ -1,6 +1,6 @@
 # Copyright 2014-2020, Stephen Fryatt (info@stevefryatt.org.uk)
 #
-# This file is part of Master:
+# This file is part of Decode:
 #
 #   http://www.stevefryatt.org.uk/software/
 #
@@ -24,14 +24,14 @@
 # It is intended for native compilation on Linux (for use in a GCCSDK
 # environment) or cross-compilation under the GCCSDK.
 
-ARCHIVE := master
+ARCHIVE := decode
 
-APP := !Master
+APP := !Decode
 
-PACKAGE := Master
+PACKAGE := Decode
 PACKAGELOC := Games
 
-SRCS := Master.bbt
+SRCS := Decode.bbt
 
 include $(SFTOOLS_MAKE)/Basic
 

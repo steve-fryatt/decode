@@ -1,8 +1,8 @@
 | >!Run
 |
-| Copyright 1993-2014, Stephen Fryatt (info@stevefryatt.org.uk)
+| Copyright 1993-2020, Stephen Fryatt (info@stevefryatt.org.uk)
 |
-| This file is part of Master:
+| This file is part of Decode:
 |
 |   http://www.stevefryatt.org.uk/software/
 |
@@ -22,10 +22,10 @@
 | See the Licence for the specific language governing
 | permissions and limitations under the Licence.
 
-Set Master$Dir <Obey$Dir>
+Set Decode$Dir <Obey$Dir>
 |
-IconSprites <Master$Dir>.!Sprites
+IconSprites <Decode$Dir>.!Sprites
 |
 WimpSlot -min 128k -max 128k
 |
-Run <Master$Dir>.!RunImage
+Run <Decode$Dir>.!RunImage

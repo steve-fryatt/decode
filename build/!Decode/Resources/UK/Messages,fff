@@ -1,6 +1,6 @@
 # Copyright 2014, Stephen Fryatt (info@stevefryatt.org.uk)
 #
-# This file is part of Master:
+# This file is part of Decode:
 #
 #   http://www.stevefryatt.org.uk/software/
 #
@@ -20,9 +20,9 @@
 # See the Licence for the specific language governing
 # permissions and limitations under the Licence.
 
-TaskName:Master
+TaskName:Decode
 
-TaskSpr:!master
+TaskSpr:!decode
 
 SupportURL:http://www.stevefryatt.org.uk/software/games/
 
@@ -36,9 +36,9 @@ Slow:Too slow! Bad luck
 
 # Interactive Help Messages
 
-Help.IconBar:\TMaster application.|MIt plays a sequence guessing game.|M\Sstart a new game.
+Help.IconBar:\TDecode application.|MIt plays a sequence guessing game.|M\Sstart a new game.
 
-Help.Main:\Tmain Master \w.|MIt plays a sequence guessing game.
+Help.Main:\Tmain Decode \w.|MIt plays a sequence guessing game.
 Help.Main.Pool:\Dpick a coloured counter to drop on the grid.
 Help.Main.Guess:\Tguessing grid.|MDrag coloured pegs from the grid above and drop them in the current row to make a guess.|M\Dre-order or remove pegs already placed in the current row.
 Help.Main.Mark:\Tscoring grid.|MWhite pegs indicate a correct colour in the wrong place.|MBlack pegs indicate a correct colour in the correct place.
@@ -48,13 +48,13 @@ Help.Main.HiScore:\Tbest score achived so far in the game.
 Help.Main.New:\Sclear the board and start a new game.
 Help.Main.Process:\Sask the computer to mark the current guess.
 
-Help.Info:\Tprogram information \w for the Master application.
-Help.Info.Website:\Tprogram information \w for the Master application.|M\Svisit its website for information and updates.
+Help.Info:\Tprogram information \w for the Decode application.
+Help.Info.Website:\Tprogram information \w for the Decode application.|M\Svisit its website for information and updates.
 
 Help.MainMenu.00:\Sstart a new game.
 
-Help.IconBarMenu.00:\Rto see information about Master and visit its website.
-Help.IconBarMenu.01:\Sread the Master documentation.
-Help.IconBarMenu.02:\Stoggle whether or not drags in the Master window use a representation of a peg or a dashed box.
-Help.IconBarMenu.03:\Squit Master.
+Help.IconBarMenu.00:\Rto see information about Decode and visit its website.
+Help.IconBarMenu.01:\Sread the Decode documentation.
+Help.IconBarMenu.02:\Stoggle whether or not drags in the Decode window use a representation of a peg or a dashed box.
+Help.IconBarMenu.03:\Squit Decode.
 
