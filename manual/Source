@@ -77,12 +77,12 @@ Here is a list of the versions of Decode, along with all the changes made.
 
 <subhead title="0.10 (19 June 2002)">
 
-First public release.
+First stable release.
 
 
 <subhead title="1.00 (24 September 2014)">
 
-Second public release.
+Second stable release.
 
 <list>
 <li>Build system revised and license updated to EUPL.
@@ -96,13 +96,23 @@ Second public release.
 
 <subhead title="1.01 (5 March 2017)">
 
-Update to second public release.
+Update to second stable release.
 
 <list>
 <li>Fix <file>!Help</file> so that <menu>Help</menu> menu items work correctly.
 <li>Tidy up Wimp message handling code.
 </list>
 
+
+<subhead title="1.02 (23 September 2020)">
+
+Update to second stable release.
+
+<list>
+<li>Licence updated to EUPL&nbsp;v1.2.
+<li>Use ResConf-style system variables to identify resources.
+<li>Renamed application following official allocation request.
+</list>
 </chapter>
 
 
@@ -121,6 +131,6 @@ Updates and Contacting Me
   on my website at http://www.stevefryatt.org.uk/software/
 
   Stephen Fryatt
-  email: steve@stevefryatt.org.uk
+  email: info@stevefryatt.org.uk
 </literal>
 
