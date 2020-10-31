@@ -10,5 +10,5 @@ Description: Guess codes chosen by the computer
  Decode is a desktop version of the 'guess the hidden code' game. Can you
  guess the sequence of colours selected by the computer in only twelve
  attempts? Complete with a drag and drop interface.
-Homepage: http://www.stevefryatt.org.uk/software/games/
+Homepage: http://www.stevefryatt.org.uk/risc-os/games
 Components: Apps.Games.!Decode (Movable)
