@@ -111,10 +111,14 @@ Update to second stable release.
 <li>Use ResConf-style system variables to identify resources.
 <li>Renamed application following official allocation request.
 </list>
+
+
+<subhead title="Test Build">
+
+<list>
+<li>Reset the line highlight when restarting mid-game.
+</list>
 </chapter>
-
-
-
 
 
 <literal mode="Text">
