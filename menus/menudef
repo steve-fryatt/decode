@@ -27,7 +27,7 @@ menu(icon_bar_menu, "Decode") {
 	item("Info") {
 		d_box(info_window);
 	}
-	item("Help");
+	item("Help...");
 	item("Solid drags");
 	item("Quit");
 }
